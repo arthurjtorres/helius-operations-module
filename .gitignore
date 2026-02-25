@@ -1,0 +1,24 @@
+# Ignorar todas as pastas node_modules e build em qualquer subdiretório
+**/node_modules/
+**/build/
+**/dist/
+
+# Ignorar logs e arquivos temporários comuns
+*.txt
+*.lock
+*.log
+*.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignorar dependências do Docker
+docker-compose.override.yml
+.dockerignore
+
+# Ignorar arquivos do VS Code
+.vscode/
+
+**.sh
+#!entrypoint.sh
+#!teste.txt
