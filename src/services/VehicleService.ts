@@ -1,19 +1,19 @@
 import { ModelStatic, Op } from "sequelize";
 import VehicleModel from "../database/models/VehicleModel";
 import VehicleTypeModel from "../database/models/VehicleTypeModel";
-import CompanyModel from "../database/models/CompanyModel";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
 import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
+import { enrichVehicleData } from "./integrations/VehicleAggregator";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
 
   async createVehicle(data: VehicleInterface) {
     data.createdAt = new Date();
-    
+
     const { error } = CreateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
@@ -28,11 +28,11 @@ class VehicleService {
     const { error } = UpdateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { vehicleId} });
+    const [updated] = await this.model.update(data, { where: { vehicleId } });
     if (!updated) return Response.notFound("Veículo não encontrado!");
 
     const result = await this.model.findByPk(vehicleId, {
-      include: [VehicleTypeModel, CompanyModel],
+      include: [VehicleTypeModel],
     });
 
     return Response.ok("Veículo atualizado com sucesso!", result);
@@ -48,12 +48,20 @@ class VehicleService {
   async getVehicle(id: string) {
     if (!id) return Response.badRequest("ID do veículo não informado.");
 
-    const result = await this.model.findByPk(id, {
-      include: [VehicleTypeModel, CompanyModel],
-    });
+    try {
+      const result = await this.model.findByPk(id, {
+        include: [VehicleTypeModel],
+      });
 
-    if (!result) return Response.notFound("Veículo não encontrado!");
-    return Response.ok("Veículo encontrado!", result);
+      if (!result) return Response.notFound("Veículo não encontrado!");
+
+      const enrichedVehicle = await enrichVehicleData(result.toJSON());
+
+      return Response.ok("Veículo encontrado!", enrichedVehicle);
+    } catch (error: any) {
+      return Response.internalError(error.message);
+    }
+
   }
 
   async findVehicles(query: {
@@ -67,28 +75,34 @@ class VehicleService {
     fkVehicleTypeVehicleId?: string;
     fkVehicleCompanyId?: string;
   }) {
-    const where: any = {};
 
-    if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
-    if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
-    if (query.brand) where.brand = { [Op.iLike]: `%${query.brand}%` };
-    if (query.model) where.model = { [Op.iLike]: `%${query.model}%` };
-    if (query.year) where.year = query.year;
-    if (query.cameraType) where.cameraType = query.cameraType;
-    if (query.hasWifi !== undefined) where.hasWifi = query.hasWifi;
-    if (query.fkVehicleTypeVehicleId) where.fkVehicleTypeVehicleId = query.fkVehicleTypeVehicleId;
-    if (query.fkVehicleCompanyId) where.fkVehicleCompanyId = query.fkVehicleCompanyId;
+    try {
+      const where: any = {};
 
-    const result = await this.model.findAll({
-      where,
-      include: [VehicleTypeModel, CompanyModel],
-    });
+      if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
+      if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
+      if (query.brand) where.brand = { [Op.iLike]: `%${query.brand}%` };
+      if (query.model) where.model = { [Op.iLike]: `%${query.model}%` };
+      if (query.year) where.year = query.year;
+      if (query.cameraType) where.cameraType = query.cameraType;
+      if (query.hasWifi !== undefined) where.hasWifi = query.hasWifi;
+      if (query.fkVehicleTypeVehicleId) where.fkVehicleTypeVehicleId = query.fkVehicleTypeVehicleId;
+      if (query.fkVehicleCompanyId) where.fkVehicleCompanyId = query.fkVehicleCompanyId;
 
-    if (!result.length) {
-      return Response.notFound("Nenhum veículo encontrado com os filtros fornecidos.");
+      const vehicles = await this.model.findAll({
+        where,
+        include: [VehicleTypeModel],
+      });
+
+      if (!vehicles.length) {
+        return Response.notFound("Nenhum veículo encontrado com os filtros fornecidos.");
+      }
+
+      const enrichedVehicles = await Promise.all(vehicles.map(v => enrichVehicleData(v.toJSON())));
+      return Response.ok("Veículos encontrados com sucesso", enrichedVehicles);
+    } catch (error: any) {
+      return Response.internalError(error.message);
     }
-
-    return Response.ok("Veículos encontrados com sucesso", result);
   }
 
   async getVehiclesByIds(ids: string[]) {
@@ -100,7 +114,7 @@ class VehicleService {
           [Op.in]: ids
         }
       },
-      include: [VehicleModel, CompanyModel]
+      include: [VehicleModel]
     });
 
     if (!result.length) return Response.notFound("Nenhum veículo encontrado para os IDs fornecidos.");
