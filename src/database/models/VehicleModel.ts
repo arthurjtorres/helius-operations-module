@@ -7,15 +7,19 @@ import db from "./database";
 
 class VehicleModel extends Model {
   declare vehicleId: string;
-  declare vehicleName: string;
-  declare licensePlate: string;
+  declare vehicleNumber: string;
+  declare fkVehicleCompanyId: string;
   declare brand: string;
+  declare licensePlate: string;
+  declare chassisNumber: string;
+  declare fabricationYear: string;
+  declare modelYear: string;
+  declare renavan: string;
+  declare fkVehicleTypeVehicleId: string;
+  declare capacity: number;
   declare model: string;
-  declare year: string;
   declare hasWifi: boolean;
   declare cameraType: CameraTypeEnum;
-  declare fkVehicleTypeVehicleId: string;
-  declare fkVehicleCompanyId: string;
 
   declare createdAt: Date;
   declare createdBy: string;
@@ -31,25 +35,55 @@ VehicleModel.init({
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
   },
-  vehicleName: {
+  vehicleNumber: {
     type: sequelize.STRING,
     allowNull: false,
     unique: true,
+  },
+  fkVehicleCompanyId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  brand: {
+    type: sequelize.STRING,
+    allowNull: false,
   },
   licensePlate: {
     type: sequelize.STRING,
     allowNull: false,
     unique: true,
   },
-  brand: {
+  chassisNumber: {
     type: sequelize.STRING,
+    allowNull: false,
+  },
+  fabricationYear: {
+    type: sequelize.STRING,
+    allowNull: false,
+  },
+  modelYear: {
+    type: sequelize.STRING,
+    allowNull: false,
+  },
+  renavan: {
+    type: sequelize.STRING,
+    allowNull: false,
+  },
+  fkVehicleTypeVehicleId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'type_vehicle',
+      key: 'type_vehicle_id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  },
+  capacity: {
+    type: sequelize.INTEGER,
     allowNull: false,
   },
   model: {
-    type: sequelize.STRING,
-    allowNull: false,
-  },
-  year: {
     type: sequelize.STRING,
     allowNull: false,
   },
@@ -63,21 +97,6 @@ VehicleModel.init({
     validate: {
       isIn: [[...Object.values(CameraTypeEnum)]],
     }
-  },
-  fkVehicleTypeVehicleId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'type_vehicle',
-      key: 'type_vehicle_id',
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  },
-  fkVehicleCompanyId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-   
   },
 
   createdAt: {
