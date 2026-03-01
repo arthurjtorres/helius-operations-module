@@ -67,7 +67,7 @@ module.exports = {
           onDelete: 'CASCADE',
         },   
         capacity: {
-          type: Sequelize.STRING,
+          type: Sequelize.INTEGER,
           allowNull: false,
         },
         model: {

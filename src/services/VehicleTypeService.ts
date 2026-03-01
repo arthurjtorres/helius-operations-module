@@ -18,17 +18,17 @@ class VehicleTypeService {
     return Response.created("Tipo de veículo criado com sucesso!");
   }
 
-  async updateVehicleType(typeVehicleId: string, data: Partial<VehicleTypeInterface>) {
+  async updateVehicleType(id: string, data: Partial<VehicleTypeInterface>) {
+    if (!id) return Response.badRequest("ID não informado");
     data.updatedAt = new Date();
-    if (!typeVehicleId) return Response.badRequest("ID não informado");
 
-    const { error } = UpdateValidationSchema.UpdateValidation.validate(data);
+    const { error } = UpdateValidationSchema.VehicleTypeValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { typeVehicleId } });
+    const [updated] = await this.model.update(data, { where: { typeVehicleId: id } });
     if (!updated) return Response.notFound("Tipo de veículo não encontrado!");
 
-    const result = await this.model.findByPk(typeVehicleId);
+    const result = await this.model.findByPk(id);
     return Response.ok("Tipo de veículo atualizado com sucesso!", result);
   }
 

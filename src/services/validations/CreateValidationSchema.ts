@@ -25,14 +25,18 @@ const VehicleTypeValidation = joi.object({
 
 const VehicleValidation = joi.object({
   vehicleNumber: joi.string().required(),
-  licensePlate: joi.string().required(),
+  fkVehicleCompanyId: joi.string().uuid().required(),
   brand: joi.string().required(),
+  licensePlate: joi.string().required(),
+  chassisNumber: joi.string().required(),
+  fabricationYear: joi.string().required(),
+  modelYear: joi.string().required(),
+  renavan: joi.string().required(),
+  fkVehicleTypeVehicleId: joi.string().uuid().required(),
+  capacity: joi.number().required(),
   model: joi.string().required(),
-  year: joi.string().required(),
   hasWifi: joi.boolean().required(),
   cameraType: joi.string().valid(...Object.values(CameraTypeEnum)).required(),
-  fkVehicleTypeVehicleId: joi.string().uuid().required(),
-  fkVehicleCompanyId: joi.string().uuid().required(),
 
   createdAt: joi.date().required(),
   createdBy: joi.string().required(),
