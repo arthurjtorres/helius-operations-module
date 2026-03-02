@@ -101,7 +101,7 @@ BusTimetableModel.init(
   {
     sequelize: db,
     tableName: "bus_timetable",
-    schema: "registry",
+    schema: "operational_control",
     timestamps: false,
     underscored: true,
   }
