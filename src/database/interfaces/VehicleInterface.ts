@@ -10,7 +10,7 @@ export default interface VehicleInterface {
   fabricationYear?: string;
   modelYear?: string;
   renavan?: string;
-  fkVehicleTypeVehicleId?: string;
+  fkTypeVehicleId?: string;
   capacity?: number;
   model?: string;
   hasWifi?: boolean;

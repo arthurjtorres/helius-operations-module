@@ -1,14 +1,15 @@
 // LocationModel
 
 import { DataTypes, Model } from "sequelize";
-import { LocationTypeEnum } from "./enums/LocationTypeEnum"; 
+import { LocationTypeEnum } from "./enums/LocationTypeEnum";
 import sequelize from "sequelize";
 import db from "./database";
 
 class LocationModel extends Model {
   declare locationId: string;
   declare locationName: string;
-  declare locationCode: string;
+  declare locationCeturbCode: string;
+  declare locationGlobusCode: string;
   declare locationType: LocationTypeEnum;
   declare locationAcronym: string;
 
@@ -30,9 +31,12 @@ LocationModel.init({
     type: sequelize.STRING,
     allowNull: false,
   },
-  locationCode: {
+  locationCeturbCode: {
     type: sequelize.STRING,
     allowNull: false,
+  },
+  locationGlobusCode: {
+    type: sequelize.STRING,
   },
   locationType: {
     type: sequelize.STRING,
@@ -70,7 +74,7 @@ LocationModel.init({
     type: sequelize.BOOLEAN,
     defaultValue: true,
   },
-  
+
 }, {
   sequelize: db,
   tableName: 'location',
