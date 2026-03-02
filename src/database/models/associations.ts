@@ -7,13 +7,13 @@ export const setupAssociations = () => {
 
 
   VehicleModel.belongsTo(VehicleTypeModel, {
-    foreignKey: 'fkVehicleTypeVehicleId',
+    foreignKey: 'fkTypeVehicleId',
     targetKey: 'typeVehicleId',
     as: 'VehicleType'
   });
 
   VehicleTypeModel.hasMany(VehicleModel, {
-    foreignKey: 'fkVehicleTypeVehicleId',
+    foreignKey: 'fkTypeVehicleId',
     sourceKey: 'typeVehicleId',
     as: 'Vehicle'
   });

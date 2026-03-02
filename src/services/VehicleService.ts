@@ -1,6 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import VehicleModel from "../database/models/VehicleModel";
-import VehicleTypeModel from "../database/models/VehicleTypeModel";
+import { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -33,8 +32,8 @@ class VehicleService {
 
     const result = await this.model.findByPk(vehicleId, {
       include: [
-          { model: VehicleTypeModel, as: 'VehicleType'}
-        ],
+        { model: VehicleTypeModel, as: 'VehicleType' }
+      ],
     });
 
     return Response.ok("Veículo atualizado com sucesso!", result);
@@ -53,7 +52,7 @@ class VehicleService {
     try {
       const result = await this.model.findByPk(id, {
         include: [
-          { model: VehicleTypeModel, as: 'VehicleType'}
+          { model: VehicleTypeModel, as: 'VehicleType' }
         ],
       });
 
@@ -96,7 +95,7 @@ class VehicleService {
       const vehicles = await this.model.findAll({
         where,
         include: [
-          { model: VehicleTypeModel, as: 'VehicleType'}
+          { model: VehicleTypeModel, as: 'VehicleType' }
         ],
       });
 
@@ -121,8 +120,8 @@ class VehicleService {
         }
       },
       include: [
-          { model: VehicleTypeModel, as: 'VehicleType'}
-        ],
+        { model: VehicleTypeModel, as: 'VehicleType' }
+      ],
     });
 
     if (!result.length) return Response.notFound("Nenhum veículo encontrado para os IDs fornecidos.");

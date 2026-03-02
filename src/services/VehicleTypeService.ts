@@ -1,5 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import VehicleTypeModel from "../database/models/VehicleTypeModel";
+import { VehicleTypeModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -10,7 +10,7 @@ class VehicleTypeService {
 
   async createVehicleType(data: VehicleTypeInterface) {
     data.createdAt = new Date();
-    
+
     const { error } = CreateValidationSchema.VehicleTypeValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
