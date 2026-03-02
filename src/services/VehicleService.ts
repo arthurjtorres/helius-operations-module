@@ -32,7 +32,9 @@ class VehicleService {
     if (!updated) return Response.notFound("Veículo não encontrado!");
 
     const result = await this.model.findByPk(vehicleId, {
-      include: [VehicleTypeModel],
+      include: [
+          { model: VehicleTypeModel, as: 'VehicleType'}
+        ],
     });
 
     return Response.ok("Veículo atualizado com sucesso!", result);
@@ -50,7 +52,9 @@ class VehicleService {
 
     try {
       const result = await this.model.findByPk(id, {
-        include: [VehicleTypeModel],
+        include: [
+          { model: VehicleTypeModel, as: 'VehicleType'}
+        ],
       });
 
       if (!result) return Response.notFound("Veículo não encontrado!");
@@ -91,7 +95,9 @@ class VehicleService {
 
       const vehicles = await this.model.findAll({
         where,
-        include: [VehicleTypeModel],
+        include: [
+          { model: VehicleTypeModel, as: 'VehicleType'}
+        ],
       });
 
       if (!vehicles.length) {
@@ -114,7 +120,9 @@ class VehicleService {
           [Op.in]: ids
         }
       },
-      include: [VehicleModel]
+      include: [
+          { model: VehicleTypeModel, as: 'VehicleType'}
+        ],
     });
 
     if (!result.length) return Response.notFound("Nenhum veículo encontrado para os IDs fornecidos.");
