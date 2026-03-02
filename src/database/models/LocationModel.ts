@@ -74,7 +74,7 @@ LocationModel.init({
 }, {
   sequelize: db,
   tableName: 'location',
-  schema: 'registry',
+  schema: 'operational_control',
   timestamps: false,
   underscored: true
 });

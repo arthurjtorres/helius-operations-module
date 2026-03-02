@@ -127,7 +127,7 @@ VehicleModel.init({
 }, {
   sequelize: db,
   tableName: 'vehicle',
-  schema: 'registry',
+  schema: 'operational_control',
   timestamps: false,
   underscored: true
 });
