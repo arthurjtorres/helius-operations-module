@@ -42,4 +42,5 @@ export const setupAssociations = () => {
     as: 'EndTimeTable',
   });
 
-}
+  console.log("✅ Associações configuradas com sucesso.");
+};

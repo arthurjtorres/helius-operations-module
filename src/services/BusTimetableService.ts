@@ -56,8 +56,8 @@ class BusTimetableService {
 
     const result = await this.model.findByPk(id, {
       include: [
-        { model: LocationModel, as: "startLocation" },
-        { model: LocationModel, as: "endLocation" },
+        { model: LocationModel, as: "StartLocation" },
+        { model: LocationModel, as: "EndLocation" },
       ],
     });
 
@@ -92,8 +92,8 @@ class BusTimetableService {
     const result = await this.model.findAll({
       where,
       include: [
-        { model: LocationModel, as: "startLocation" },
-        { model: LocationModel, as: "endLocation" },
+        { model: LocationModel, as: "StartLocation" },
+        { model: LocationModel, as: "EndLocation" },
       ],
     });
 
