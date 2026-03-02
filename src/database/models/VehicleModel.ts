@@ -15,7 +15,7 @@ class VehicleModel extends Model {
   declare fabricationYear: string;
   declare modelYear: string;
   declare renavan: string;
-  declare fkVehicleTypeVehicleId: string;
+  declare fkTypeVehicleId: string;
   declare capacity: number;
   declare model: string;
   declare hasWifi: boolean;
@@ -69,7 +69,7 @@ VehicleModel.init({
     type: sequelize.STRING,
     allowNull: false,
   },
-  fkVehicleTypeVehicleId: {
+  fkTypeVehicleId: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
