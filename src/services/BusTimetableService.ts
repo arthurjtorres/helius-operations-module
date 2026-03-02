@@ -1,10 +1,10 @@
 import { ModelStatic } from "sequelize";
-import BusTimetableModel from "../database/models/BusTimetableModel";
+import { BusTimetableModel, LocationModel } from "../database/models";
 import BusTimetableInterface from "../database/interfaces/BusTimetableInterface";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
-import LocationModel from "../database/models/LocationModel";
+
 import { Op } from "sequelize";
 
 class BusTimetableService {

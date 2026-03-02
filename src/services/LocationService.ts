@@ -1,5 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import LocationModel from "../database/models/LocationModel";
+import { LocationModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -10,7 +10,7 @@ class LocationService {
 
   async createLocation(data: LocationInterface) {
     data.createdAt = new Date();
-    
+
     const { error } = CreateValidationSchema.LocationValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
@@ -19,14 +19,14 @@ class LocationService {
   }
 
   async updateLocation(id: string, data: Partial<LocationInterface>) {
-    
+
     if (!id) return Response.badRequest("ID não informado");
     data.updatedAt = new Date();
 
     const { error } = UpdateValidationSchema.LocationValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { locationId : id } });
+    const [updated] = await this.model.update(data, { where: { locationId: id } });
     if (!updated) return Response.notFound("Localização não encontrada!");
 
     const result = await this.model.findByPk(id);
