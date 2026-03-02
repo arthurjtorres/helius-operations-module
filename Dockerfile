@@ -18,7 +18,7 @@ RUN yarn build
 # Etapa 2 - Imagem final para produção
 FROM node:lts-alpine3.22
 
-WORKDIR /modulo-juridico
+WORKDIR /modulo-operacional
 
 # Copiar apenas arquivos essenciais da etapa de build
 COPY --from=builder /modulo-operacional/package*.json ./
