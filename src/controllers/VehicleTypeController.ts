@@ -28,11 +28,22 @@ class VehicleTypeController {
   async deleteVehicleType(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.deleteVehicleType(id);
+      const result = await this.service.deleteVehicleType(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em deleteVehicleType:", error);
       return res.status(500).json("Erro interno ao deletar tipo de veículo.");
+    }
+  }
+
+  async reactivateVehicleType(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await this.service.reactivateVehicleType(id, res.locals.user.userId);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em reactivateVehicleType:", error);
+      return res.status(500).json("Erro interno ao reativar tipo de veículo.");
     }
   }
 
