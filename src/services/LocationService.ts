@@ -1,5 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import { LocationModel } from "../database/models";
+import { LocationModel, BusTimetableModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -26,24 +26,64 @@ class LocationService {
     const { error } = UpdateValidationSchema.LocationValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { locationId: id } });
+    const [updated] = await this.model.update(data, { where: { locationId: id, activated: true } });
     if (!updated) return Response.notFound("Localização não encontrada!");
 
-    const result = await this.model.findByPk(id);
+    const result = await this.model.findOne({ where: { locationId: id, activated: true } });
     return Response.ok("Localização atualizada com sucesso!", result);
   }
 
-  async deleteLocation(id: string) {
-    const deleted = await this.model.destroy({ where: { locationId: id } });
-    if (!deleted) return Response.notFound("Localização não encontrada!");
+  /**
+   * Desativa o registro (exclusão lógica): `activated = false`.
+   * Bloqueia (409) se houver tabelas de horário ativas que usam o local (início ou fim).
+   *
+   * @param id Identificador da localização.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async deleteLocation(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
 
-    return Response.ok("Localização deletada com sucesso!");
+    const dependents = await BusTimetableModel.count({
+      where: {
+        activated: true,
+        [Op.or]: [{ fkBusTimetableLocationStartId: id }, { fkBusTimetableLocationEndId: id }],
+      },
+    });
+    if (dependents > 0) {
+      return Response.conflict("Não é possível desativar: a localização é usada por tabelas de horário ativas.");
+    }
+
+    const [updated] = await this.model.update(
+      { activated: false, updatedBy, updatedAt: new Date() },
+      { where: { locationId: id, activated: true } }
+    );
+    if (!updated) return Response.notFound("Localização não encontrada!");
+
+    return Response.ok("Localização desativada com sucesso!");
+  }
+
+  /**
+   * Reativa uma localização desativada (`activated = true`).
+   *
+   * @param id Identificador da localização.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async reactivateLocation(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
+
+    const [updated] = await this.model.update(
+      { activated: true, updatedBy, updatedAt: new Date() },
+      { where: { locationId: id, activated: false } }
+    );
+    if (!updated) return Response.notFound("Localização não encontrada ou já ativa!");
+
+    return Response.ok("Localização reativada com sucesso!");
   }
 
   async getLocation(id: string) {
     if (!id) return Response.badRequest("ID da localização não informado.");
 
-    const result = await this.model.findByPk(id);
+    const result = await this.model.findOne({ where: { locationId: id, activated: true } });
     if (!result) return Response.notFound("Localização não encontrada!");
     return Response.ok("Localização encontrada!", result);
   }
@@ -54,7 +94,7 @@ class LocationService {
     locationCeturbCode?: string;
     locationAcronym?: string;
   }) {
-    const where: any = {};
+    const where: any = { activated: true };
 
     if (query.locationName) where.locationName = { [Op.iLike]: `%${query.locationName}%` };
     if (query.locationType) where.locationType = query.locationType;
