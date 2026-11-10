@@ -6,7 +6,7 @@ class BusTimetableController {
 
   async createBusTimetable(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.createBusTimetable(req.body);
+      const result = await this.service.createBusTimetable({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em createBusTimetable:", error);
@@ -17,7 +17,7 @@ class BusTimetableController {
   async updateBusTimetable(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.updateBusTimetable(id, req.body);
+      const result = await this.service.updateBusTimetable(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em updateBusTimetable:", error);

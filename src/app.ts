@@ -14,7 +14,6 @@ const allowedOrigins = [
 app.use(cors({
 
   origin: function (origin, callback) {
-    console.log("Tentativa de acesso pela origem:", origin);
     // 1. Permite requisições sem 'origin' (ex: Postman ou apps mobile)
     if (!origin) return callback(null, true);
 
@@ -34,7 +33,7 @@ app.use(cors({
       callback(new Error('Bloqueado pelo CORS: Origem não permitida.'))
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-User', 'X-Auth-Pass', 'Accept'],
   credentials: true,
   preflightContinue: false,
@@ -47,8 +46,8 @@ app.use(router);
 app.get('/', (req, res) => res.status(200).send('Rodando operacional aqui!'));
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  return res.status(500).json({ message: err.message });
-  //next();
+  console.error("Erro não tratado:", err);
+  return res.status(500).json({ message: "Erro interno do servidor" });
 })
 
 export default app;
