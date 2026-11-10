@@ -6,7 +6,7 @@ class LocationController {
 
   async createLocation(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.createLocation(req.body);
+      const result = await this.service.createLocation({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em createLocation:", error);
@@ -17,7 +17,7 @@ class LocationController {
   async updateLocation(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.updateLocation(id, req.body);
+      const result = await this.service.updateLocation(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em updateLocation:", error);

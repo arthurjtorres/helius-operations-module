@@ -1,14 +1,19 @@
-import { VehicleModel } from "../../database/models"
 import { getCompanyById } from "./integrationService"
 
-export const enrichVehicleData = async ( vehicle: VehicleModel) => {
+/**
+ * Anexa a empresa (consultada no `registry`) ao veículo já serializado.
+ * Em falha, devolve o veículo sem a empresa.
+ *
+ * @param vehicle Veículo em objeto simples (resultado de `toJSON()`).
+ */
+export const enrichVehicleData = async <T extends { fkVehicleCompanyId: string }>(vehicle: T) => {
   try {
     const [company] = await Promise.all([
       getCompanyById(vehicle.fkVehicleCompanyId),
     ]);
 
     return {
-      ...vehicle.toJSON(),
+      ...vehicle,
       company,
     };
   } catch (error: any) {
