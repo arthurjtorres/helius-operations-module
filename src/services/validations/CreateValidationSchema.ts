@@ -32,7 +32,7 @@ const VehicleValidation = joi.object({
   fabricationYear: joi.string().required(),
   modelYear: joi.string().required(),
   renavan: joi.string().required(),
-  fkVehicleTypeVehicleId: joi.string().uuid().required(),
+  fkTypeVehicleId: joi.string().uuid().required(),
   capacity: joi.number().required(),
   model: joi.string().required(),
   hasWifi: joi.boolean().required(),

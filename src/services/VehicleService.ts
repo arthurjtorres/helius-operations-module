@@ -16,7 +16,8 @@ class VehicleService {
     const { error } = CreateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    await this.model.create({ ...data });
+    // No banco, `vehicle.updated_by` é NOT NULL (diverge do model/ERD): na criação usa o próprio autor.
+    await this.model.create({ ...data, updatedBy: data.createdBy });
     return Response.created("Veículo criado com sucesso!");
   }
 
@@ -62,7 +63,8 @@ class VehicleService {
 
       return Response.ok("Veículo encontrado!", enrichedVehicle);
     } catch (error: any) {
-      return Response.internalError(error.message);
+      console.error("Erro em VehicleService:", error);
+      return Response.internalError();
     }
 
   }
@@ -72,10 +74,11 @@ class VehicleService {
     licensePlate?: string;
     brand?: string;
     model?: string;
-    year?: string;
+    fabricationYear?: string;
+    modelYear?: string;
     cameraType?: CameraTypeEnum;
     hasWifi?: boolean;
-    fkVehicleTypeVehicleId?: string;
+    fkTypeVehicleId?: string;
     fkVehicleCompanyId?: string;
   }) {
 
@@ -86,10 +89,11 @@ class VehicleService {
       if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
       if (query.brand) where.brand = { [Op.iLike]: `%${query.brand}%` };
       if (query.model) where.model = { [Op.iLike]: `%${query.model}%` };
-      if (query.year) where.year = query.year;
+      if (query.fabricationYear) where.fabricationYear = query.fabricationYear;
+      if (query.modelYear) where.modelYear = query.modelYear;
       if (query.cameraType) where.cameraType = query.cameraType;
       if (query.hasWifi !== undefined) where.hasWifi = query.hasWifi;
-      if (query.fkVehicleTypeVehicleId) where.fkVehicleTypeVehicleId = query.fkVehicleTypeVehicleId;
+      if (query.fkTypeVehicleId) where.fkTypeVehicleId = query.fkTypeVehicleId;
       if (query.fkVehicleCompanyId) where.fkVehicleCompanyId = query.fkVehicleCompanyId;
 
       const vehicles = await this.model.findAll({
@@ -106,7 +110,8 @@ class VehicleService {
       const enrichedVehicles = await Promise.all(vehicles.map(v => enrichVehicleData(v.toJSON())));
       return Response.ok("Veículos encontrados com sucesso", enrichedVehicles);
     } catch (error: any) {
-      return Response.internalError(error.message);
+      console.error("Erro em VehicleService:", error);
+      return Response.internalError();
     }
   }
 
