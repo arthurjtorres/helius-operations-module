@@ -6,7 +6,7 @@ class VehicleTypeController {
 
   async createVehicleType(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.createVehicleType(req.body);
+      const result = await this.service.createVehicleType({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em createVehicleType:", error);
@@ -17,7 +17,7 @@ class VehicleTypeController {
   async updateVehicleType(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.updateVehicleType(id, req.body);
+      const result = await this.service.updateVehicleType(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em updateVehicleType:", error);
