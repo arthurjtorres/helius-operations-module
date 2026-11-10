@@ -10,11 +10,48 @@ import { enrichVehicleData } from "./integrations/VehicleAggregator";
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
 
+  /**
+   * Verifica se `vehicleNumber` ou `licensePlate` já pertencem a outro veículo.
+   * Valores de registros inativos continuam ocupados: a resposta informa o id e a rota de reativação.
+   *
+   * @param data Dados informados (parciais no `PUT`).
+   * @param excludeId Veículo a ignorar (o próprio, no `PUT`).
+   * @returns Resposta de conflito (409) ou `null` se os valores estiverem livres.
+   */
+  private async findUniqueConflict(data: Partial<VehicleInterface>, excludeId?: string) {
+    const checks: Array<[string, "vehicleNumber" | "licensePlate"]> = [
+      ["Número do veículo", "vehicleNumber"],
+      ["Placa", "licensePlate"],
+    ];
+
+    for (const [label, field] of checks) {
+      const value = data[field];
+      if (!value) continue;
+
+      const where: any = { [field]: value };
+      if (excludeId) where.vehicleId = { [Op.ne]: excludeId };
+
+      const existing = await this.model.findOne({ where });
+      if (existing) {
+        return Response.conflict(
+          existing.activated
+            ? `${label} já cadastrado(a).`
+            : `${label} já existe em um veículo inativo (id: ${existing.vehicleId}). Reative-o em PATCH /vehicle/${existing.vehicleId}/reactivate.`
+        );
+      }
+    }
+
+    return null;
+  }
+
   async createVehicle(data: VehicleInterface) {
     data.createdAt = new Date();
 
     const { error } = CreateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
+
+    const conflict = await this.findUniqueConflict(data);
+    if (conflict) return conflict;
 
     // No banco, `vehicle.updated_by` é NOT NULL (diverge do model/ERD): na criação usa o próprio autor.
     await this.model.create({ ...data, updatedBy: data.createdBy });
@@ -28,32 +65,70 @@ class VehicleService {
     const { error } = UpdateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { vehicleId } });
+    const conflict = await this.findUniqueConflict(data, vehicleId);
+    if (conflict) return conflict;
+
+    const [updated] = await this.model.update(data, { where: { vehicleId, activated: true } });
     if (!updated) return Response.notFound("Veículo não encontrado!");
 
-    const result = await this.model.findByPk(vehicleId, {
+    const result = await this.model.findOne({
+      where: { vehicleId, activated: true },
       include: [
-        { model: VehicleTypeModel, as: 'VehicleType' }
+        { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
       ],
     });
 
     return Response.ok("Veículo atualizado com sucesso!", result);
   }
 
-  async deleteVehicle(id: string) {
-    const deleted = await this.model.destroy({ where: { vehicleId: id } });
-    if (!deleted) return Response.notFound("Veículo não encontrado!");
+  /**
+   * Desativa o registro (exclusão lógica): `activated = false`.
+   *
+   * @param id Identificador do veículo.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async deleteVehicle(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
 
-    return Response.ok("Veículo deletado com sucesso!");
+    const [updated] = await this.model.update(
+      { activated: false, updatedBy, updatedAt: new Date() },
+      { where: { vehicleId: id, activated: true } }
+    );
+    if (!updated) return Response.notFound("Veículo não encontrado!");
+
+    return Response.ok("Veículo desativado com sucesso!");
+  }
+
+  /**
+   * Reativa um veículo desativado (`activated = true`).
+   * Responde 409 se o tipo de veículo estiver inativo.
+   *
+   * @param id Identificador do veículo.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async reactivateVehicle(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
+
+    const vehicle = await this.model.findOne({ where: { vehicleId: id, activated: false } });
+    if (!vehicle) return Response.notFound("Veículo não encontrado ou já ativo!");
+
+    const typeActive = await VehicleTypeModel.count({ where: { typeVehicleId: vehicle.fkTypeVehicleId, activated: true } });
+    if (!typeActive) {
+      return Response.conflict("Não é possível reativar: o tipo de veículo está inativo.");
+    }
+
+    await vehicle.update({ activated: true, updatedBy, updatedAt: new Date() });
+    return Response.ok("Veículo reativado com sucesso!");
   }
 
   async getVehicle(id: string) {
     if (!id) return Response.badRequest("ID do veículo não informado.");
 
     try {
-      const result = await this.model.findByPk(id, {
+      const result = await this.model.findOne({
+        where: { vehicleId: id, activated: true },
         include: [
-          { model: VehicleTypeModel, as: 'VehicleType' }
+          { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
         ],
       });
 
@@ -83,7 +158,7 @@ class VehicleService {
   }) {
 
     try {
-      const where: any = {};
+      const where: any = { activated: true };
 
       if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
       if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
@@ -99,7 +174,7 @@ class VehicleService {
       const vehicles = await this.model.findAll({
         where,
         include: [
-          { model: VehicleTypeModel, as: 'VehicleType' }
+          { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
         ],
       });
 
@@ -122,10 +197,11 @@ class VehicleService {
       where: {
         vehicleId: {
           [Op.in]: ids
-        }
+        },
+        activated: true
       },
       include: [
-        { model: VehicleTypeModel, as: 'VehicleType' }
+        { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
       ],
     });
 

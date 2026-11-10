@@ -28,11 +28,22 @@ class BusTimetableController {
   async deleteBusTimetable(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.deleteBusTimetable(id);
+      const result = await this.service.deleteBusTimetable(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em deleteBusTimetable:", error);
       return res.status(500).json("Erro interno ao deletar tabela de horário.");
+    }
+  }
+
+  async reactivateBusTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await this.service.reactivateBusTimetable(id, res.locals.user.userId);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em reactivateBusTimetable:", error);
+      return res.status(500).json("Erro interno ao reativar tabela de horário.");
     }
   }
 
