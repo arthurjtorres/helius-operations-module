@@ -28,11 +28,22 @@ class LocationController {
   async deleteLocation(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.deleteLocation(id);
+      const result = await this.service.deleteLocation(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
       console.error("Erro em deleteLocation:", error);
       return res.status(500).json("Erro interno ao deletar localização.");
+    }
+  }
+
+  async reactivateLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await this.service.reactivateLocation(id, res.locals.user.userId);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em reactivateLocation:", error);
+      return res.status(500).json("Erro interno ao reativar localização.");
     }
   }
 

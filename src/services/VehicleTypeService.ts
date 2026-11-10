@@ -1,5 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import { VehicleTypeModel } from "../database/models";
+import { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -25,30 +25,64 @@ class VehicleTypeService {
     const { error } = UpdateValidationSchema.VehicleTypeValidation.validate(data);
     if (error) return Response.badRequest(error.message);
 
-    const [updated] = await this.model.update(data, { where: { typeVehicleId: id } });
+    const [updated] = await this.model.update(data, { where: { typeVehicleId: id, activated: true } });
     if (!updated) return Response.notFound("Tipo de veículo não encontrado!");
 
-    const result = await this.model.findByPk(id);
+    const result = await this.model.findOne({ where: { typeVehicleId: id, activated: true } });
     return Response.ok("Tipo de veículo atualizado com sucesso!", result);
   }
 
-  async deleteVehicleType(id: string) {
-    const deleted = await this.model.destroy({ where: { typeVehicleId: id } });
-    if (!deleted) return Response.notFound("Tipo de veículo não encontrado!");
+  /**
+   * Desativa o registro (exclusão lógica): `activated = false`.
+   * Bloqueia (409) se houver veículos ativos deste tipo.
+   *
+   * @param id Identificador do tipo de veículo.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async deleteVehicleType(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
 
-    return Response.ok("Tipo de veículo deletado com sucesso!");
+    if (await VehicleModel.count({ where: { fkTypeVehicleId: id, activated: true } }) > 0) {
+      return Response.conflict("Não é possível desativar: o tipo de veículo possui veículos ativos.");
+    }
+
+    const [updated] = await this.model.update(
+      { activated: false, updatedBy, updatedAt: new Date() },
+      { where: { typeVehicleId: id, activated: true } }
+    );
+    if (!updated) return Response.notFound("Tipo de veículo não encontrado!");
+
+    return Response.ok("Tipo de veículo desativado com sucesso!");
+  }
+
+  /**
+   * Reativa um tipo de veículo desativado (`activated = true`).
+   *
+   * @param id Identificador do tipo de veículo.
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async reactivateVehicleType(id: string, updatedBy: string) {
+    if (!id) return Response.badRequest("ID não informado");
+
+    const [updated] = await this.model.update(
+      { activated: true, updatedBy, updatedAt: new Date() },
+      { where: { typeVehicleId: id, activated: false } }
+    );
+    if (!updated) return Response.notFound("Tipo de veículo não encontrado ou já ativo!");
+
+    return Response.ok("Tipo de veículo reativado com sucesso!");
   }
 
   async getVehicleType(id: string) {
     if (!id) return Response.badRequest("ID do tipo de veículo não informado.");
 
-    const result = await this.model.findByPk(id);
+    const result = await this.model.findOne({ where: { typeVehicleId: id, activated: true } });
     if (!result) return Response.notFound("Tipo de veículo não encontrado!");
     return Response.ok("Tipo de veículo encontrado!", result);
   }
 
   async findVehicleTypes(query: { typeVehicleName?: string; airConditioner?: boolean }) {
-    const where: any = {};
+    const where: any = { activated: true };
 
     if (query.typeVehicleName) {
       where.typeVehicleName = { [Op.iLike]: `%${query.typeVehicleName}%` };

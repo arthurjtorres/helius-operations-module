@@ -8,6 +8,7 @@ const controller = new VehicleTypeController();
 vehicleTypeRouter.post("/", verifyToken, controller.createVehicleType.bind(controller));
 vehicleTypeRouter.put("/:id", verifyToken, controller.updateVehicleType.bind(controller));
 vehicleTypeRouter.delete("/:id", verifyToken, controller.deleteVehicleType.bind(controller));
+vehicleTypeRouter.patch("/:id/reactivate", verifyToken, controller.reactivateVehicleType.bind(controller));
 vehicleTypeRouter.get("/:id", verifyToken, controller.getVehicleType.bind(controller));
 vehicleTypeRouter.get("/", verifyToken, controller.findVehicleTypes.bind(controller));
 
