@@ -1,4 +1,5 @@
 import axios from "axios";
+import { attachServiceToken } from "./serviceToken";
 
 export const axiosRegistry = axios.create({
   baseURL: `http://modulo-cadastro:${process.env.PORT_API_CADASTRO}`,
@@ -9,3 +10,5 @@ export const axiosControl = axios.create({
   baseURL: `http://modulo-controle:${process.env.PORT_API_CONTROLE}`,
   timeout: 5000,
 });
+
+attachServiceToken(axiosRegistry, "operations");
