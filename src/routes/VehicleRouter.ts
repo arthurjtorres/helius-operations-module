@@ -15,6 +15,7 @@ vehicleRouter.patch("/:id/reactivate", verifyToken, checkPermission("VEICULOS", 
 vehicleRouter.post("/lookup", allowServiceToken, verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.lookupVehicles.bind(controller));
 vehicleRouter.get("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.getVehicle.bind(controller));
 vehicleRouter.get("/", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.findVehicles.bind(controller));
-vehicleRouter.post("/bulk", allowServiceToken, verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.getVehiclesByIds.bind(controller));
+// Importação em lote (inserção): só usuário com VEICULOS:CREATE; token de serviço nunca passa (T09)
+vehicleRouter.post("/bulk", verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.bulkImportVehicles.bind(controller));
 
 export default vehicleRouter;
