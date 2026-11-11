@@ -9,12 +9,12 @@
   "private": false,
   "scripts": {
     "build": "npx tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "migrate": "npx sequelize db:migrate",
     "start": "node server.js"
   },
-   "dependencies": {
+  "dependencies": {
     "axios": "^1.10.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -32,13 +32,16 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.1",
+    "@types/jest": "^30.0.0",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^24.0.0",
     "@types/sequelize": "^4.28.20",
     "@types/uuid": "^9.0.8",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.7",
     "sequelize-cli": "^6.6.2",
+    "ts-jest": "^29.4.15",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.5"
   }

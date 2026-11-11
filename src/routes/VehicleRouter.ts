@@ -1,16 +1,18 @@
 import { Router } from "express";
 import { verifyToken, allowServiceToken } from "../middlewares/Authentication";
+import { checkPermission } from "../middlewares/CheckPermission";
+import { PermissionEnum } from "../database/models/enums/PermissionEnum";
 import VehicleController from "../controllers/VehicleController";
 
 const vehicleRouter = Router();
 const controller = new VehicleController();
 
-vehicleRouter.post("/", verifyToken, controller.createVehicle.bind(controller));
-vehicleRouter.put("/:id", verifyToken, controller.updateVehicle.bind(controller));
-vehicleRouter.delete("/:id", verifyToken, controller.deleteVehicle.bind(controller));
-vehicleRouter.patch("/:id/reactivate", verifyToken, controller.reactivateVehicle.bind(controller));
-vehicleRouter.get("/:id", verifyToken, controller.getVehicle.bind(controller));
-vehicleRouter.get("/", verifyToken, controller.findVehicles.bind(controller));
-vehicleRouter.post("/bulk", allowServiceToken, verifyToken, controller.getVehiclesByIds.bind(controller));
+vehicleRouter.post("/", verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.createVehicle.bind(controller));
+vehicleRouter.put("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.UPDATE), controller.updateVehicle.bind(controller));
+vehicleRouter.delete("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.DELETE), controller.deleteVehicle.bind(controller));
+vehicleRouter.patch("/:id/reactivate", verifyToken, checkPermission("VEICULOS", PermissionEnum.UPDATE), controller.reactivateVehicle.bind(controller));
+vehicleRouter.get("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.getVehicle.bind(controller));
+vehicleRouter.get("/", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.findVehicles.bind(controller));
+vehicleRouter.post("/bulk", allowServiceToken, verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.getVehiclesByIds.bind(controller));
 
 export default vehicleRouter;
