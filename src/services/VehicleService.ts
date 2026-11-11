@@ -7,6 +7,7 @@ import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
 import { parseIdList } from "../utils/IdList";
+import VehicleBulkService from "./VehicleBulkService";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
@@ -194,7 +195,6 @@ class VehicleService {
   /**
    * Consulta veículos ativos por lista de IDs (usada por outros módulos, T09), com o tipo ativo.
    * Responde 200 com os encontrados; IDs inexistentes ou inativos são omitidos (lista vazia não é 404).
-   * Substitui, na prática, `POST /vehicle/bulk` (consulta), que passa a ser reservada à inserção.
    * @param ids Lista de UUIDs no corpo da requisição (1 a 500).
    */
   async lookupVehicles(ids: unknown) {
@@ -210,26 +210,15 @@ class VehicleService {
     return Response.ok("Veículos consultados com sucesso.", result);
   }
 
-  async getVehiclesByIds(ids: string[]) {
-    if (!ids || ids.length === 0) return Response.badRequest("Lista de IDs não informada.");
-
-    const result = await this.model.findAll({
-      where: {
-        vehicleId: {
-          [Op.in]: ids
-        },
-        activated: true
-      },
-      include: [
-        { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
-      ],
-    });
-
-    if (!result.length) return Response.notFound("Nenhum veículo encontrado para os IDs fornecidos.");
-
-    return Response.ok("Veículos encontrados com sucesso!", result);
+  /**
+   * Importa veículos em lote (T09): valida tudo, grava numa única transação e devolve
+   * relatório por item. Ver `VehicleBulkService`.
+   * @param payload Empresa, usuário (do token) e lista de veículos.
+   * @param options `dryRun`: só valida, sem gravar.
+   */
+  async bulkImport(payload: { companyId?: unknown; userId?: unknown; vehicles?: unknown }, options: { dryRun?: boolean } = {}) {
+    return new VehicleBulkService().importVehicles(payload, options);
   }
-
 }
 
 export default VehicleService;
