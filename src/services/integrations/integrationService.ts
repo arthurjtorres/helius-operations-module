@@ -14,7 +14,7 @@ export const getCompanyById = async (id: string) => {
 export const getCompaniesByIds = async (ids: string[]) => {
   if (!ids.length) return [];
   try {
-    const response = await axiosRegistry.post(registryRoutes.getCompaniesBulk, { ids });
+    const response = await axiosRegistry.post(registryRoutes.getCompaniesLookup, { ids });
     return response.data?.data || [];
   } catch (error) {
     console.error("Erro ao procurar empresas em lote:", error);

@@ -58,6 +58,17 @@ class BusTimetableController {
     }
   }
 
+  /** POST /lookup — consulta tabelas de horário por lista de IDs (corpo `{ ids }`). */
+  async lookupBusTimetables(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.service.getBusTimetablesByIds(req.body?.ids);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em lookupBusTimetables:", error);
+      return res.status(500).json("Erro interno ao consultar tabelas de horário em lote.");
+    }
+  }
+
   async findBusTimetables(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.service.findBusTimetables(req.query);
