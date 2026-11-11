@@ -4,6 +4,7 @@ import BusTimetableInterface from "../database/interfaces/BusTimetableInterface"
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
+import { parseIdList } from "../utils/IdList";
 
 import { Op } from "sequelize";
 
@@ -106,6 +107,23 @@ class BusTimetableService {
     return Response.ok("Tabela de horário encontrada!", result);
   }
 
+
+  /**
+   * Consulta tabelas de horário ativas por lista de IDs (usada por outros módulos, T09),
+   * com as localizações de início e fim ativas. Responde 200 com os encontrados; IDs
+   * inexistentes ou inativos são omitidos (lista vazia não é 404).
+   * @param ids Lista de UUIDs no corpo da requisição (1 a 500).
+   */
+  async getBusTimetablesByIds(ids: unknown) {
+    const parsed = parseIdList(ids);
+    if ("error" in parsed) return Response.badRequest(parsed.error);
+
+    const result = await this.model.findAll({
+      where: { busTimetableId: { [Op.in]: parsed.ids }, activated: true },
+      include: locationIncludes(),
+    });
+    return Response.ok("Tabelas de horário consultadas com sucesso.", result);
+  }
 
   async findBusTimetables(query: Partial<BusTimetableInterface>) {
     const where: any = { activated: true };

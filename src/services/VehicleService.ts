@@ -6,6 +6,7 @@ import Response from "../utils/Response";
 import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
+import { parseIdList } from "../utils/IdList";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
@@ -188,6 +189,25 @@ class VehicleService {
       console.error("Erro em VehicleService:", error);
       return Response.internalError();
     }
+  }
+
+  /**
+   * Consulta veículos ativos por lista de IDs (usada por outros módulos, T09), com o tipo ativo.
+   * Responde 200 com os encontrados; IDs inexistentes ou inativos são omitidos (lista vazia não é 404).
+   * Substitui, na prática, `POST /vehicle/bulk` (consulta), que passa a ser reservada à inserção.
+   * @param ids Lista de UUIDs no corpo da requisição (1 a 500).
+   */
+  async lookupVehicles(ids: unknown) {
+    const parsed = parseIdList(ids);
+    if ("error" in parsed) return Response.badRequest(parsed.error);
+
+    const result = await this.model.findAll({
+      where: { vehicleId: { [Op.in]: parsed.ids }, activated: true },
+      include: [
+        { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
+      ],
+    });
+    return Response.ok("Veículos consultados com sucesso.", result);
   }
 
   async getVehiclesByIds(ids: string[]) {
