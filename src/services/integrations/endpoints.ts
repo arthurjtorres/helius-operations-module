@@ -4,7 +4,7 @@ export const registryRoutes = {
   getCorporationById: (id: string) => `/corporation/${id}`,
   getCompanyById: (id: string) => `/company/${id}`,
   
-  // --- Rotas em Lote ---
-  getCompaniesBulk: `/company/bulk`,
+  // --- Consulta por IDs (POST, T09) ---
+  getCompaniesLookup: `/company/lookup`,
  
 }

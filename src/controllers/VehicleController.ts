@@ -58,6 +58,17 @@ class VehicleController {
     }
   }
 
+  /** POST /lookup — consulta veículos por lista de IDs (corpo `{ ids }`). */
+  async lookupVehicles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.service.lookupVehicles(req.body?.ids);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em lookupVehicles:", error);
+      return res.status(500).json("Erro interno ao consultar veículos em lote.");
+    }
+  }
+
   async findVehicles(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.service.findVehicles(req.query);
