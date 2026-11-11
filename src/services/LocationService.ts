@@ -4,6 +4,7 @@ import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
 import LocationInterface from "../database/interfaces/LocationInterface";
+import { parseIdList } from "../utils/IdList";
 
 class LocationService {
   private model: ModelStatic<LocationModel> = LocationModel;
@@ -86,6 +87,21 @@ class LocationService {
     const result = await this.model.findOne({ where: { locationId: id, activated: true } });
     if (!result) return Response.notFound("Localização não encontrada!");
     return Response.ok("Localização encontrada!", result);
+  }
+
+  /**
+   * Consulta localizações ativas por lista de IDs (usada por outros módulos, T09).
+   * Responde 200 com os encontrados; IDs inexistentes ou inativos são omitidos (lista vazia não é 404).
+   * @param ids Lista de UUIDs no corpo da requisição (1 a 500).
+   */
+  async getLocationsByIds(ids: unknown) {
+    const parsed = parseIdList(ids);
+    if ("error" in parsed) return Response.badRequest(parsed.error);
+
+    const result = await this.model.findAll({
+      where: { locationId: { [Op.in]: parsed.ids }, activated: true },
+    });
+    return Response.ok("Localizações consultadas com sucesso.", result);
   }
 
   async findLocations(query: {

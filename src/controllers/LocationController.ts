@@ -58,6 +58,17 @@ class LocationController {
     }
   }
 
+  /** POST /lookup — consulta localizações por lista de IDs (corpo `{ ids }`). */
+  async lookupLocations(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.service.getLocationsByIds(req.body?.ids);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em lookupLocations:", error);
+      return res.status(500).json("Erro interno ao consultar localizações em lote.");
+    }
+  }
+
   async findLocations(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.service.findLocations(req.query);
