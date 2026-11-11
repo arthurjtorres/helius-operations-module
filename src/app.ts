@@ -40,7 +40,7 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" })); // importação em lote (até 500 itens)
 
 app.use(router);
 app.get('/', (req, res) => res.status(200).send('Rodando operacional aqui!'));

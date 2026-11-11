@@ -79,16 +79,17 @@ class VehicleController {
     }
   }
 
-  async getVehiclesByIds(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { ids } = req.body; // Espera um array de strings no body
-    const result = await this.service.getVehiclesByIds(ids);
-    return res.status(result.status).json(result);
-  } catch (error) {
-    console.error("Erro em getVehiclesByIds:", error);
-    return res.status(500).json("Erro interno ao buscar veículos em lote.");
+  /** POST /bulk — importa veículos em lote (`{ companyId, vehicles }`; `?dryRun=true` só valida). */
+  async bulkImportVehicles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const payload = { ...req.body, userId: res.locals.user.userId };
+      const result = await this.service.bulkImport(payload, { dryRun: req.query.dryRun === "true" });
+      return res.status(result.status).json(result);
+    } catch (error) {
+      console.error("Erro em bulkImportVehicles:", error);
+      return res.status(500).json("Erro interno ao importar veículos em lote.");
+    }
   }
-}
 }
 
 export default VehicleController;
