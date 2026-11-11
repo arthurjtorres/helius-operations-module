@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyToken } from "../middlewares/Authentication";
+import { verifyToken, allowServiceToken } from "../middlewares/Authentication";
 import VehicleController from "../controllers/VehicleController";
 
 const vehicleRouter = Router();
@@ -11,6 +11,6 @@ vehicleRouter.delete("/:id", verifyToken, controller.deleteVehicle.bind(controll
 vehicleRouter.patch("/:id/reactivate", verifyToken, controller.reactivateVehicle.bind(controller));
 vehicleRouter.get("/:id", verifyToken, controller.getVehicle.bind(controller));
 vehicleRouter.get("/", verifyToken, controller.findVehicles.bind(controller));
-vehicleRouter.post("/bulk", verifyToken, controller.getVehiclesByIds.bind(controller));
+vehicleRouter.post("/bulk", allowServiceToken, verifyToken, controller.getVehiclesByIds.bind(controller));
 
 export default vehicleRouter;
