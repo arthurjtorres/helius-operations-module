@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { logError } from "../utils/logError";
+import Resp from "../utils/Response";
 import VehicleService from "../services/VehicleService";
 
 class VehicleController {
@@ -9,8 +11,9 @@ class VehicleController {
       const result = await this.service.createVehicle({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em createVehicle:", error);
-      return res.status(500).json("Erro interno ao criar veículo.");
+      logError("Erro em createVehicle", error);
+      const resp = Resp.internalError("Erro interno ao criar veículo.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -20,8 +23,9 @@ class VehicleController {
       const result = await this.service.updateVehicle(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em updateVehicle:", error);
-      return res.status(500).json("Erro interno ao atualizar veículo.");
+      logError("Erro em updateVehicle", error);
+      const resp = Resp.internalError("Erro interno ao atualizar veículo.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -31,8 +35,9 @@ class VehicleController {
       const result = await this.service.deleteVehicle(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em deleteVehicle:", error);
-      return res.status(500).json("Erro interno ao deletar veículo.");
+      logError("Erro em deleteVehicle", error);
+      const resp = Resp.internalError("Erro interno ao deletar veículo.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -42,8 +47,9 @@ class VehicleController {
       const result = await this.service.reactivateVehicle(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em reactivateVehicle:", error);
-      return res.status(500).json("Erro interno ao reativar veículo.");
+      logError("Erro em reactivateVehicle", error);
+      const resp = Resp.internalError("Erro interno ao reativar veículo.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -53,8 +59,9 @@ class VehicleController {
       const result = await this.service.getVehicle(id);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em getVehicle:", error);
-      return res.status(500).json("Erro interno ao buscar veículo.");
+      logError("Erro em getVehicle", error);
+      const resp = Resp.internalError("Erro interno ao buscar veículo.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -64,8 +71,9 @@ class VehicleController {
       const result = await this.service.lookupVehicles(req.body?.ids);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em lookupVehicles:", error);
-      return res.status(500).json("Erro interno ao consultar veículos em lote.");
+      logError("Erro em lookupVehicles", error);
+      const resp = Resp.internalError("Erro interno ao consultar veículos em lote.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -74,8 +82,9 @@ class VehicleController {
       const result = await this.service.findVehicles(req.query);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em findVehicles:", error);
-      return res.status(500).json("Erro interno ao buscar veículos.");
+      logError("Erro em findVehicles", error);
+      const resp = Resp.internalError("Erro interno ao buscar veículos.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -86,8 +95,9 @@ class VehicleController {
       const result = await this.service.bulkImport(payload, { dryRun: req.query.dryRun === "true" });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em bulkImportVehicles:", error);
-      return res.status(500).json("Erro interno ao importar veículos em lote.");
+      logError("Erro em bulkImportVehicles", error);
+      const resp = Resp.internalError("Erro interno ao importar veículos em lote.");
+      return res.status(resp.status).json(resp);
     }
   }
 }
