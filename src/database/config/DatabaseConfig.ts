@@ -8,5 +8,7 @@ const config: Options = {
   database: process.env.DB_NAME,  // Já compartilhado no .env
   host: process.env.DB_HOST,
   dialect: 'postgres',
+  // Em produção não registra SQL (a query traz valores); fora dela, mantém o log no console
+  logging: process.env.NODE_ENV === 'production' ? false : console.log,
 }
 export = config
