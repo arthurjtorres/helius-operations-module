@@ -8,7 +8,7 @@ import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
 import { parseIdList } from "../utils/IdList";
-import VehicleBulkService from "./VehicleBulkService";
+import VehicleBulkService, { ImportOptions } from "./VehicleBulkService";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
@@ -217,7 +217,7 @@ class VehicleService {
    * @param payload Empresa, usuário (do token) e lista de veículos.
    * @param options `dryRun`: só valida, sem gravar.
    */
-  async bulkImport(payload: { companyId?: unknown; userId?: unknown; vehicles?: unknown }, options: { dryRun?: boolean } = {}) {
+  async bulkImport(payload: { companyId?: unknown; userId?: unknown; vehicles?: unknown }, options: ImportOptions = {}) {
     return new VehicleBulkService().importVehicles(payload, options);
   }
 }
