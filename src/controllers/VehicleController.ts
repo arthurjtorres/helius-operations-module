@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
 import VehicleService from "../services/VehicleService";
+import { parseImportOptions } from "../utils/VehicleUpsert";
 
 class VehicleController {
   private service = new VehicleService();
@@ -92,7 +93,12 @@ class VehicleController {
   async bulkImportVehicles(req: Request, res: Response, next: NextFunction) {
     try {
       const payload = { ...req.body, userId: res.locals.user.userId };
-      const result = await this.service.bulkImport(payload, { dryRun: req.query.dryRun === "true" });
+      const parsed = parseImportOptions(req.query, req.body);
+      if ("error" in parsed) {
+        const resp = Resp.badRequest(parsed.error);
+        return res.status(resp.status).json(resp);
+      }
+      const result = await this.service.bulkImport(payload, parsed.options);
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em bulkImportVehicles", error);
