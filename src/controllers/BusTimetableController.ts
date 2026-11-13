@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { logError } from "../utils/logError";
+import Resp from "../utils/Response";
 import BusTimetableService from "../services/BusTimetableService";
 
 class BusTimetableController {
@@ -9,8 +11,9 @@ class BusTimetableController {
       const result = await this.service.createBusTimetable({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em createBusTimetable:", error);
-      return res.status(500).json("Erro interno ao criar tabela de horário.");
+      logError("Erro em createBusTimetable", error);
+      const resp = Resp.internalError("Erro interno ao criar tabela de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -20,8 +23,9 @@ class BusTimetableController {
       const result = await this.service.updateBusTimetable(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em updateBusTimetable:", error);
-      return res.status(500).json("Erro interno ao atualizar tabela de horário.");
+      logError("Erro em updateBusTimetable", error);
+      const resp = Resp.internalError("Erro interno ao atualizar tabela de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -31,8 +35,9 @@ class BusTimetableController {
       const result = await this.service.deleteBusTimetable(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em deleteBusTimetable:", error);
-      return res.status(500).json("Erro interno ao deletar tabela de horário.");
+      logError("Erro em deleteBusTimetable", error);
+      const resp = Resp.internalError("Erro interno ao deletar tabela de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -42,8 +47,9 @@ class BusTimetableController {
       const result = await this.service.reactivateBusTimetable(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em reactivateBusTimetable:", error);
-      return res.status(500).json("Erro interno ao reativar tabela de horário.");
+      logError("Erro em reactivateBusTimetable", error);
+      const resp = Resp.internalError("Erro interno ao reativar tabela de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -53,8 +59,9 @@ class BusTimetableController {
       const result = await this.service.getBusTimetable(id);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em getBusTimetable:", error);
-      return res.status(500).json("Erro interno ao buscar tabela de horário.");
+      logError("Erro em getBusTimetable", error);
+      const resp = Resp.internalError("Erro interno ao buscar tabela de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -64,8 +71,9 @@ class BusTimetableController {
       const result = await this.service.getBusTimetablesByIds(req.body?.ids);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em lookupBusTimetables:", error);
-      return res.status(500).json("Erro interno ao consultar tabelas de horário em lote.");
+      logError("Erro em lookupBusTimetables", error);
+      const resp = Resp.internalError("Erro interno ao consultar tabelas de horário em lote.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -74,8 +82,9 @@ class BusTimetableController {
       const result = await this.service.findBusTimetables(req.query);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em findBusTimetables:", error);
-      return res.status(500).json("Erro interno ao buscar tabelas de horário.");
+      logError("Erro em findBusTimetables", error);
+      const resp = Resp.internalError("Erro interno ao buscar tabelas de horário.");
+      return res.status(resp.status).json(resp);
     }
   }
 }

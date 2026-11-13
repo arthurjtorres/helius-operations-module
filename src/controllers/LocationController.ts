@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { logError } from "../utils/logError";
+import Resp from "../utils/Response";
 import LocationService from "../services/LocationService";
 
 class LocationController {
@@ -9,8 +11,9 @@ class LocationController {
       const result = await this.service.createLocation({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em createLocation:", error);
-      return res.status(500).json("Erro interno ao criar localização.");
+      logError("Erro em createLocation", error);
+      const resp = Resp.internalError("Erro interno ao criar localização.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -20,8 +23,9 @@ class LocationController {
       const result = await this.service.updateLocation(id, { ...req.body, updatedBy: res.locals.user.userId });
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em updateLocation:", error);
-      return res.status(500).json("Erro interno ao atualizar localização.");
+      logError("Erro em updateLocation", error);
+      const resp = Resp.internalError("Erro interno ao atualizar localização.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -31,8 +35,9 @@ class LocationController {
       const result = await this.service.deleteLocation(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em deleteLocation:", error);
-      return res.status(500).json("Erro interno ao deletar localização.");
+      logError("Erro em deleteLocation", error);
+      const resp = Resp.internalError("Erro interno ao deletar localização.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -42,8 +47,9 @@ class LocationController {
       const result = await this.service.reactivateLocation(id, res.locals.user.userId);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em reactivateLocation:", error);
-      return res.status(500).json("Erro interno ao reativar localização.");
+      logError("Erro em reactivateLocation", error);
+      const resp = Resp.internalError("Erro interno ao reativar localização.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -53,8 +59,9 @@ class LocationController {
       const result = await this.service.getLocation(id);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em getLocation:", error);
-      return res.status(500).json("Erro interno ao buscar localização.");
+      logError("Erro em getLocation", error);
+      const resp = Resp.internalError("Erro interno ao buscar localização.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -64,8 +71,9 @@ class LocationController {
       const result = await this.service.getLocationsByIds(req.body?.ids);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em lookupLocations:", error);
-      return res.status(500).json("Erro interno ao consultar localizações em lote.");
+      logError("Erro em lookupLocations", error);
+      const resp = Resp.internalError("Erro interno ao consultar localizações em lote.");
+      return res.status(resp.status).json(resp);
     }
   }
 
@@ -74,8 +82,9 @@ class LocationController {
       const result = await this.service.findLocations(req.query);
       return res.status(result.status).json(result);
     } catch (error) {
-      console.error("Erro em findLocations:", error);
-      return res.status(500).json("Erro interno ao buscar localizações.");
+      logError("Erro em findLocations", error);
+      const resp = Resp.internalError("Erro interno ao buscar localizações.");
+      return res.status(resp.status).json(resp);
     }
   }
 }

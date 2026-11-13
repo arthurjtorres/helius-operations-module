@@ -3,6 +3,7 @@ import { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
+import { logError } from "../utils/logError";
 import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
@@ -139,8 +140,8 @@ class VehicleService {
       const enrichedVehicle = await enrichVehicleData(result.toJSON());
 
       return Response.ok("Veículo encontrado!", enrichedVehicle);
-    } catch (error: any) {
-      console.error("Erro em VehicleService:", error);
+    } catch (error: unknown) {
+      logError("getVehicle", error);
       return Response.internalError();
     }
 
@@ -186,8 +187,8 @@ class VehicleService {
 
       const enrichedVehicles = await Promise.all(vehicles.map(v => enrichVehicleData(v.toJSON())));
       return Response.ok("Veículos encontrados com sucesso", enrichedVehicles);
-    } catch (error: any) {
-      console.error("Erro em VehicleService:", error);
+    } catch (error: unknown) {
+      logError("findVehicles", error);
       return Response.internalError();
     }
   }
