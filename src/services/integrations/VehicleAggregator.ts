@@ -1,4 +1,5 @@
 import { getCompanyById } from "./integrationService"
+import { logError } from "../../utils/logError";
 
 /**
  * Anexa a empresa (consultada no `registry`) ao veículo já serializado.
@@ -16,8 +17,8 @@ export const enrichVehicleData = async <T extends { fkVehicleCompanyId: string }
       ...vehicle,
       company,
     };
-  } catch (error: any) {
-     console.error("Erro ao buscar dados:", error.message);
+  } catch (error: unknown) {
+    logError("enrichVehicleData", error);
     return vehicle; // Retorna o dado parcial se falhar
   }
 }

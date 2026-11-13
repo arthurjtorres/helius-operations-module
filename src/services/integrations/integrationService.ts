@@ -1,12 +1,13 @@
 import { axiosRegistry } from "./axiosInstance";
 import { registryRoutes } from "./endpoints";
+import { logError } from "../../utils/logError";
 
 export const getCompanyById = async (id: string) => {
   try {
     const response = await axiosRegistry.get(registryRoutes.getCompanyById(id));
     return response.data?.data || null;
-  } catch (error: any) {
-    console.error(`Erro ao buscar a empresa ${id}:`, error.message);
+  } catch (error: unknown) {
+    logError("getCompanyById", error);
     return null;
   }
 };
@@ -17,7 +18,7 @@ export const getCompaniesByIds = async (ids: string[]) => {
     const response = await axiosRegistry.post(registryRoutes.getCompaniesLookup, { ids });
     return response.data?.data || [];
   } catch (error) {
-    console.error("Erro ao procurar empresas em lote:", error);
+    logError("getCompaniesByIds", error);
     return [];
   }
 };
@@ -38,7 +39,7 @@ export const fetchCompaniesStrict = async (ids: string[]): Promise<{ companyId?:
     if (!Array.isArray(response.data?.data)) throw new Error("resposta inesperada do registry");
     return response.data.data;
   } catch (error: unknown) {
-    console.error("Erro ao consultar empresas no registry:", error instanceof Error ? error.message : "desconhecido");
+    logError("fetchCompaniesStrict", error);
     throw new RegistryUnavailableError(error instanceof Error ? error.message : "falha desconhecida");
   }
 };
