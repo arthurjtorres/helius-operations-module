@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { Op, UniqueConstraintError } from "sequelize";
 import db, { VehicleModel, VehicleTypeModel } from "../database/models";
 import { fetchCompaniesStrict, RegistryUnavailableError } from "./integrations/integrationService";
+import { logError } from "../utils/logError";
 import {
   ItemFailure,
   MAX_BULK_ITEMS,
@@ -187,7 +188,7 @@ class VehicleBulkService {
       if (error instanceof UniqueConstraintError) {
         return { status: 409, message: "Conflito de unicidade durante a gravação (número ou placa cadastrados por outra requisição). Nenhum registro foi gravado; tente novamente." };
       }
-      console.error("Erro na importação de veículos:", error instanceof Error ? error.message : "desconhecido");
+      logError("importVehicles", error);
       return { status: 500, message: "Erro interno ao importar veículos. Nenhum registro foi gravado." };
     }
   }
