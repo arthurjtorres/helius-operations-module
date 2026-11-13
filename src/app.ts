@@ -1,45 +1,20 @@
 import express from "express";
 import cors from 'cors';
+import helmet from 'helmet';
 import router from "./routes";
 import errorHandler from "./middlewares/ErrorHandler";
+import { buildCorsOptions, resolveAllowedOrigins } from "./utils/corsOptions";
 import "dotenv/config";
 
 const app = express();
 
-// 1. O CORS DEVE VIR PRIMEIRO DE TUDO
-const allowedOrigins = [
-  process.env.API_HOST + ':' + process.env.PORT_WEB_MODULE,
-  'http://localhost:' + process.env.PORT_WEB_MODULE,
-  'http://127.0.0.1:' + process.env.PORT_WEB_MODULE,
-]
-app.use(cors({
-
-  origin: function (origin, callback) {
-    // 1. Permite requisições sem 'origin' (ex: Postman ou apps mobile)
-    if (!origin) return callback(null, true);
-
-    // 2. Verifica se a origem está na lista fixa OU se é um IP de rede local
-    //const isLocalNetwork = origin.startsWith('http://10.10.') || origin.startsWith('http://192.168.');
-    const isAllowed =
-      allowedOrigins.indexOf(origin) !== -1 ||
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1') ||
-      origin.startsWith('http://10.10.') ||
-      origin.startsWith('http://192.168.');
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.error(`[CORS REJECTED] Origem: ${origin}`);
-      callback(new Error('Bloqueado pelo CORS: Origem não permitida.'))
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-User', 'X-Auth-Pass', 'Accept'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
+// CORS primeiro: lista exata de origens (CORS_ORIGINS ou fallback), registrada uma vez na subida
+const allowedOrigins = resolveAllowedOrigins();
+console.log(`[CORS] Origens permitidas: ${allowedOrigins.join(', ') || '(nenhuma)'}`);
+app.use(cors(buildCorsOptions(allowedOrigins)));
+// Cabeçalhos de segurança (remove X-Powered-By, nosniff etc.). O front só usa XHR com CORS,
+// então o Cross-Origin-Resource-Policy padrão (same-origin) não o afeta.
+app.use(helmet());
 
 app.use(express.json({ limit: "1mb" })); // importação em lote (até 500 itens)
 
