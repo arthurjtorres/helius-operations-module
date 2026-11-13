@@ -7,6 +7,9 @@ import VehicleController from "../controllers/VehicleController";
 const vehicleRouter = Router();
 const controller = new VehicleController();
 
+/** Em `?mode=upsert` a importação também altera veículos existentes: exige `UPDATE` além de `CREATE` (T10). */
+const requireUpdateOnUpsert = checkPermission("VEICULOS", PermissionEnum.UPDATE);
+
 vehicleRouter.post("/", verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.createVehicle.bind(controller));
 vehicleRouter.put("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.UPDATE), controller.updateVehicle.bind(controller));
 vehicleRouter.delete("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.DELETE), controller.deleteVehicle.bind(controller));
@@ -16,6 +19,12 @@ vehicleRouter.post("/lookup", allowServiceToken, verifyToken, checkPermission("V
 vehicleRouter.get("/:id", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.getVehicle.bind(controller));
 vehicleRouter.get("/", verifyToken, checkPermission("VEICULOS", PermissionEnum.READ), controller.findVehicles.bind(controller));
 // Importação em lote (inserção): só usuário com VEICULOS:CREATE; token de serviço nunca passa (T09)
-vehicleRouter.post("/bulk", verifyToken, checkPermission("VEICULOS", PermissionEnum.CREATE), controller.bulkImportVehicles.bind(controller));
+vehicleRouter.post(
+  "/bulk",
+  verifyToken,
+  checkPermission("VEICULOS", PermissionEnum.CREATE),
+  (req, res, next) => (req.query.mode === "upsert" ? requireUpdateOnUpsert(req, res, next) : next()),
+  controller.bulkImportVehicles.bind(controller)
+);
 
 export default vehicleRouter;
