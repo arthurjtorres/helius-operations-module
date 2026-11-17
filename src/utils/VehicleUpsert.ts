@@ -1,4 +1,4 @@
-import { normalizeText, plateKey, ValidVehicleItem } from "./VehicleImport";
+import { normalizeRenavan, normalizeText, plateKey, ValidVehicleItem } from "./VehicleImport";
 
 /** Diferença de um campo entre o cadastro e a planilha (T10). Os valores aparecem na resposta, nunca em log. */
 export interface FieldChange {
@@ -65,7 +65,7 @@ export const compareVehicle = (input: ComparisonInput): ComparisonConflict | Com
   if (vehicle.chassisNumber.toUpperCase() !== item.chassisNumber.toUpperCase()) {
     return { conflict: { field: "chassisNumber", error: "Número já usado por outro veículo (chassi diferente)." } };
   }
-  if (vehicle.renavan !== item.renavan) {
+  if (normalizeRenavan(vehicle.renavan) !== item.renavan) {
     return { conflict: { field: "renavan", error: "Renavam diferente do cadastrado para este veículo." } };
   }
   if (vehicle.fkVehicleCompanyId !== companyId) {

@@ -9,6 +9,7 @@ import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
 import { parseIdList } from "../utils/IdList";
 import VehicleBulkService, { ImportOptions } from "./VehicleBulkService";
+import { normalizeRenavan } from "../utils/VehicleImport";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
@@ -49,6 +50,7 @@ class VehicleService {
 
   async createVehicle(data: VehicleInterface) {
     data.createdAt = new Date();
+    if (typeof data.renavan === "string") data.renavan = normalizeRenavan(data.renavan.trim());
 
     const { error } = CreateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
@@ -64,6 +66,7 @@ class VehicleService {
   async updateVehicle(vehicleId: string, data: Partial<VehicleInterface>) {
     data.updatedAt = new Date();
     if (!vehicleId) return Response.badRequest("ID não informado");
+    if (typeof data.renavan === "string") data.renavan = normalizeRenavan(data.renavan.trim());
 
     const { error } = UpdateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
