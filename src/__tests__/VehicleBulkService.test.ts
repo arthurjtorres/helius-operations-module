@@ -135,6 +135,12 @@ describe('VehicleBulkService (tudo ou nada)', () => {
     expect(r.data?.failed.map(f => f.field).sort()).toEqual(['chassisNumber', 'renavan']);
   });
 
+  it('renavam gravado sem o zero à esquerda é reconhecido como duplicado', async () => {
+    mocks.vehicleFindAll.mockResolvedValueOnce([]).mockResolvedValueOnce([{ vehicleId: 'x', chassisNumber: 'OUTRO', renavan: '123456789' }]);
+    const r = await run([item('1', { renavan: '00123456789' })]);
+    expect(r.data?.failed.map(f => f.field)).toEqual(['renavan']);
+  });
+
   it('dryRun valida e relata sem gravar nem abrir transação', async () => {
     const r = await run([item('1')], true);
     expect(r.status).toBe(200);

@@ -1,4 +1,4 @@
-import { normalizeText, parseBoolean, plateKey, plateVariants, validateVehicleItems } from '../utils/VehicleImport';
+import { normalizeRenavan, normalizeText, parseBoolean, plateKey, plateVariants, renavanVariants, validateVehicleItems } from '../utils/VehicleImport';
 
 const item = (p: Record<string, unknown> = {}) => ({
   vehicleNumber: '1001', brand: 'ZZ_TEST_Marca', licensePlate: 'ABC-1234', chassisNumber: '9BWZZZ377VT004251',
@@ -17,6 +17,26 @@ describe('texto e placa', () => {
     ['SIM', 'sim', 'S', true, 1, 'true', '1'].forEach(v => expect(parseBoolean(v)).toBe(true));
     ['NÃO', 'nao', 'N', false, 0, 'false', '0'].forEach(v => expect(parseBoolean(v)).toBe(false));
     ['talvez', '', null, undefined, 2, {}].forEach(v => expect(parseBoolean(v)).toBeNull());
+  });
+});
+
+describe('renavam', () => {
+  it('normalizeRenavan completa 9 e 10 dígitos até 11 e mantém o resto', () => {
+    expect(normalizeRenavan('123456789')).toBe('00123456789');
+    expect(normalizeRenavan('1234567890')).toBe('01234567890');
+    expect(normalizeRenavan('12345678901')).toBe('12345678901');
+    expect(normalizeRenavan('ABC')).toBe('ABC');
+  });
+  it('renavanVariants gera as gravações com e sem zeros à esquerda', () => {
+    expect(renavanVariants('00123456789').sort()).toEqual(['00123456789', '0123456789', '123456789']);
+    expect(renavanVariants('12345678901')).toEqual(['12345678901']);
+  });
+  it('a importação grava o renavam com 11 dígitos (célula numérica sem o zero)', () => {
+    expect(validateVehicleItems([item({ renavan: 123456789 })]).valid[0].renavan).toBe('00123456789');
+  });
+  it('o mesmo renavam com e sem zero na lista é repetição', () => {
+    const { failed } = validateVehicleItems([item({ renavan: '123456789' }), item({ vehicleNumber: '1002', licensePlate: 'ABC-1235', chassisNumber: '9BWZZZ377VT004252', renavan: '00123456789' })]);
+    expect(failed.map(f => f.field)).toContain('renavan');
   });
 });
 

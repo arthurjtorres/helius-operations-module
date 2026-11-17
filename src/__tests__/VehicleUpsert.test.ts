@@ -55,6 +55,8 @@ describe('compareVehicle', () => {
   it('identidade divergente é conflito: chassi, renavam ou empresa', () => {
     expect(compareVehicle(input({ chassisNumber: '9BWZZZ377VT999999' }))).toEqual({ conflict: expect.objectContaining({ field: 'chassisNumber' }) });
     expect(compareVehicle(input({ renavan: '99999999999' }))).toEqual({ conflict: expect.objectContaining({ field: 'renavan' }) });
+    // gravado antes da normalização (sem o zero à esquerda) não é conflito
+    expect(isConflict(compareVehicle(input({ renavan: '123456789' }, { renavan: '00123456789' })))).toBe(false);
     expect(compareVehicle(input({ fkVehicleCompanyId: 'c-2' }))).toEqual({ conflict: expect.objectContaining({ field: 'companyId' }) });
   });
 });
