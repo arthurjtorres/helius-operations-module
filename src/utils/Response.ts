@@ -40,8 +40,9 @@ class Response {
     return { status: 404, message };
   }
 
-  static conflict(message: string): ErrorResponse {
-    return { status: 409, message };
+  /** @param data Opcional: dados para o cliente resolver o conflito (ex.: id do registro inativo). */
+  static conflict<T>(message: string, data?: T): ErrorResponse & { data?: T } {
+    return data === undefined ? { status: 409, message } : { status: 409, message, data };
   }
 
   static unprocessableEntity(message: string): ErrorResponse {
