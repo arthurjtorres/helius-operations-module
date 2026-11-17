@@ -6,9 +6,11 @@ import { logError } from "../utils/logError";
 import {
   ItemFailure,
   MAX_BULK_ITEMS,
+  normalizeRenavan,
   normalizeText,
   plateKey,
   plateVariants,
+  renavanVariants,
   validateVehicleItems,
   ValidVehicleItem,
 } from "../utils/VehicleImport";
@@ -181,12 +183,12 @@ class VehicleBulkService {
     // Chassi e renavam não são únicos no banco, mas identificam o veículo: duplicidade é erro
     const dupVehicles = candidates.length
       ? await VehicleModel.findAll({
-          where: { [Op.or]: [{ chassisNumber: { [Op.in]: candidates.map(c => c.chassisNumber) } }, { renavan: { [Op.in]: candidates.map(c => c.renavan) } }] },
+          where: { [Op.or]: [{ chassisNumber: { [Op.in]: candidates.map(c => c.chassisNumber) } }, { renavan: { [Op.in]: candidates.flatMap(c => renavanVariants(c.renavan)) } }] },
           attributes: ["vehicleId", "chassisNumber", "renavan"],
         })
       : [];
     const byChassis = new Map(dupVehicles.map(v => [v.chassisNumber, v]));
-    const byRenavan = new Map(dupVehicles.map(v => [v.renavan, v]));
+    const byRenavan = new Map(dupVehicles.map(v => [normalizeRenavan(v.renavan), v]));
     const fresh: ValidVehicleItem[] = [];
     candidates.forEach(item => {
       const ch = byChassis.get(item.chassisNumber);
