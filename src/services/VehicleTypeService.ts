@@ -4,15 +4,41 @@ import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
 import VehicleTypeInterface from "../database/interfaces/VehicleTypeInterface";
+import { normalizeText } from "../utils/VehicleImport";
 
 class VehicleTypeService {
   private model: ModelStatic<VehicleTypeModel> = VehicleTypeModel;
+
+  /**
+   * Verifica se já existe outro tipo com o mesmo nome normalizado (sem acento, caixa ou espaços extras),
+   * que tornaria a importação ambígua. Ativo tem prioridade; se só houver inativo, a resposta traz o id
+   * para reativação. O banco não tem unique no nome.
+   *
+   * @param name Nome informado.
+   * @param excludeId Tipo a ignorar (o próprio, no `PUT`).
+   * @returns Resposta de conflito (409) ou `null` se o nome estiver livre.
+   */
+  private async findNameConflict(name: string, excludeId?: string) {
+    const key = normalizeText(name);
+    // shortcut: compara em memória (tabela pequena); se os tipos passarem de alguns milhares, mover para o banco (unaccent)
+    const same = (await this.model.findAll({ attributes: ["typeVehicleId", "typeVehicleName", "activated"] }))
+      .filter(t => t.typeVehicleId !== excludeId && normalizeText(t.typeVehicleName) === key);
+    if (same.some(t => t.activated)) return Response.conflict("Já existe um tipo de veículo com este nome.");
+    if (same.length) {
+      const id = same[0].typeVehicleId;
+      return Response.conflict(`Já existe um tipo de veículo inativo com este nome (id: ${id}). Reative-o em PATCH /vehicle-type/${id}/reactivate.`, { id });
+    }
+    return null;
+  }
 
   async createVehicleType(data: VehicleTypeInterface) {
     data.createdAt = new Date();
 
     const { error } = CreateValidationSchema.VehicleTypeValidation.validate(data);
     if (error) return Response.badRequest(error.message);
+
+    const conflict = await this.findNameConflict(data.typeVehicleName);
+    if (conflict) return conflict;
 
     await this.model.create({ ...data });
     return Response.created("Tipo de veículo criado com sucesso!");
@@ -24,6 +50,11 @@ class VehicleTypeService {
 
     const { error } = UpdateValidationSchema.VehicleTypeValidation.validate(data);
     if (error) return Response.badRequest(error.message);
+
+    if (data.typeVehicleName) {
+      const conflict = await this.findNameConflict(data.typeVehicleName, id);
+      if (conflict) return conflict;
+    }
 
     const [updated] = await this.model.update(data, { where: { typeVehicleId: id, activated: true } });
     if (!updated) return Response.notFound("Tipo de veículo não encontrado!");
