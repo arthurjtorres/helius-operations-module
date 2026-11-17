@@ -77,6 +77,24 @@ export const plateVariants = (key: string): string[] =>
   key.length === 7 ? [key, `${key.slice(0, 3)}-${key.slice(3)}`] : [key];
 
 /**
+ * Renavam com 11 dígitos: completa com zeros à esquerda o valor que perdeu o zero
+ * (9 ou 10 dígitos, ex.: célula numérica do Excel). Outros valores passam como vieram.
+ * @param value Renavam só com dígitos.
+ */
+export const normalizeRenavan = (value: string): string =>
+  /^\d{9,10}$/.test(value) ? value.padStart(11, "0") : value;
+
+/**
+ * Formas em que o mesmo Renavam pode estar gravado (com e sem zeros à esquerda), para achar
+ * duplicidade em registros anteriores à normalização.
+ * @param value Renavam já normalizado por `normalizeRenavan`.
+ */
+export const renavanVariants = (value: string): string[] => {
+  const bare = value.replace(/^0+/, "");
+  return [...new Set([value, ...[9, 10].filter(n => bare.length <= n).map(n => bare.padStart(n, "0"))])];
+};
+
+/**
  * Converte "sim/não" e equivalentes em booleano.
  * @param value Booleano, texto (SIM, NÃO, S, N, TRUE, FALSE, 1, 0) ou número 1/0.
  * @returns O valor, ou `null` se não reconhecido.
@@ -147,9 +165,10 @@ export const validateVehicleItems = (items: unknown[]): { valid: ValidVehicleIte
     else if (!/^[A-Z0-9]{8,25}$/.test(chassis)) bad("chassisNumber", "Chassi inválido; use de 8 a 25 letras e números.");
 
     const renavanRaw = typeof item.renavan === "number" ? String(item.renavan) : text(item.renavan);
-    const renavan = renavanRaw ? renavanRaw.replace(/\D/g, "") : null;
-    if (!renavan) bad("renavan", "Renavam não informado.");
-    else if (!/^\d{9,11}$/.test(renavan)) bad("renavan", "Renavam inválido; use de 9 a 11 dígitos.");
+    const renavanDigits = renavanRaw ? renavanRaw.replace(/\D/g, "") : null;
+    if (!renavanDigits) bad("renavan", "Renavam não informado.");
+    else if (!/^\d{9,11}$/.test(renavanDigits)) bad("renavan", "Renavam inválido; use de 9 a 11 dígitos.");
+    const renavan = renavanDigits ? normalizeRenavan(renavanDigits) : null;
 
     const fabricationYear = parseYear(item.fabricationYear);
     if (!fabricationYear) bad("fabricationYear", "Ano de fabricação inválido; use 4 dígitos.");
