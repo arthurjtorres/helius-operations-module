@@ -78,6 +78,17 @@ class VehicleController {
     }
   }
 
+  async bulkDeactivate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.service.bulkDeactivate(req.body?.ids, res.locals.user.userId);
+      return res.status(result.status).json(result);
+    } catch (error) {
+      logError("Erro em bulkDeactivate", error);
+      const resp = Resp.internalError("Erro interno ao desativar veículos em lote.");
+      return res.status(resp.status).json(resp);
+    }
+  }
+
   async findVehicles(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await this.service.findVehicles(req.query);
