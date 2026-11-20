@@ -1,5 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
-import { VehicleTypeModel, VehicleModel } from "../database/models";
+import db, { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
 import Response from "../utils/Response";
@@ -212,6 +212,37 @@ class VehicleService {
       ],
     });
     return Response.ok("Veículos consultados com sucesso.", result);
+  }
+
+  /**
+   * Desativa vários veículos numa transação, tudo ou nada (T19: lista "fora da planilha").
+   * Id inexistente ou já inativo cancela o lote (409 com os ids). No módulo não há dependentes
+   * que bloqueiem a desativação de veículo.
+   * @param ids Lista recebida em `req.body.ids` (UUIDs, máx. `MAX_LOOKUP_IDS`).
+   * @param updatedBy Usuário autenticado que executa a operação.
+   */
+  async bulkDeactivate(ids: unknown, updatedBy: string) {
+    const parsed = parseIdList(ids);
+    if ("error" in parsed) return Response.badRequest(parsed.error);
+
+    const transaction = await db.transaction();
+    try {
+      const where = { vehicleId: { [Op.in]: parsed.ids }, activated: true };
+      const found = await this.model.findAll({ where, attributes: ["vehicleId"], lock: true, transaction });
+      const foundIds = new Set(found.map(v => v.vehicleId));
+      const missing = parsed.ids.filter(id => !foundIds.has(id));
+      if (missing.length) {
+        await transaction.rollback();
+        return Response.conflict(`Nada foi desativado: ${missing.length} veículo(s) não encontrado(s) ou já inativo(s).`, { ids: missing });
+      }
+
+      await this.model.update({ activated: false, updatedBy, updatedAt: new Date() }, { where, transaction });
+      await transaction.commit();
+      return Response.ok(`${parsed.ids.length} veículo(s) desativado(s).`, { deactivated: parsed.ids.length });
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   /**
