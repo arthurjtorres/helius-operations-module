@@ -8,6 +8,9 @@ import VehicleInterface from "../database/interfaces/VehicleInterface";
 import { CameraTypeEnum } from "../database/models/enums/CameraTypeEnum";
 import { enrichVehicleData } from "./integrations/VehicleAggregator";
 import { parseIdList } from "../utils/IdList";
+
+/** Máximo de IDs por desativação em lote: o mesmo da importação de funcionários (lista "fora da planilha", T19). */
+export const MAX_DEACTIVATE_IDS = 5000;
 import VehicleBulkService, { ImportOptions } from "./VehicleBulkService";
 import { normalizeRenavan } from "../utils/VehicleImport";
 
@@ -218,11 +221,11 @@ class VehicleService {
    * Desativa vários veículos numa transação, tudo ou nada (T19: lista "fora da planilha").
    * Id inexistente ou já inativo cancela o lote (409 com os ids). No módulo não há dependentes
    * que bloqueiem a desativação de veículo.
-   * @param ids Lista recebida em `req.body.ids` (UUIDs, máx. `MAX_LOOKUP_IDS`).
+   * @param ids Lista recebida em `req.body.ids` (UUIDs, máx. `MAX_DEACTIVATE_IDS`).
    * @param updatedBy Usuário autenticado que executa a operação.
    */
   async bulkDeactivate(ids: unknown, updatedBy: string) {
-    const parsed = parseIdList(ids);
+    const parsed = parseIdList(ids, MAX_DEACTIVATE_IDS);
     if ("error" in parsed) return Response.badRequest(parsed.error);
 
     const transaction = await db.transaction();
