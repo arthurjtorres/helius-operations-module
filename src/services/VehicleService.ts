@@ -13,6 +13,13 @@ import { parseIdList } from "../utils/IdList";
 export const MAX_DEACTIVATE_IDS = 5000;
 import VehicleBulkService, { ImportOptions } from "./VehicleBulkService";
 import { normalizeRenavan } from "../utils/VehicleImport";
+import { inCompanyScope } from "../utils/AccessPolicy";
+
+/** Filtro do escopo de empresas (T18); `null` = sem filtro. Fora do escopo = não encontrado (404). */
+const scopeWhere = (scope: string[] | null) => (scope ? { fkVehicleCompanyId: { [Op.in]: scope } } : {});
+
+/** Empresa informada fora do escopo do usuário (T18, decisão 2). */
+const OUT_OF_SCOPE = "Empresa fora do seu escopo de acesso.";
 
 class VehicleService {
   private model: ModelStatic<VehicleModel> = VehicleModel;
@@ -51,12 +58,13 @@ class VehicleService {
     return null;
   }
 
-  async createVehicle(data: VehicleInterface) {
+  async createVehicle(data: VehicleInterface, scope: string[] | null = null) {
     data.createdAt = new Date();
     if (typeof data.renavan === "string") data.renavan = normalizeRenavan(data.renavan.trim());
 
     const { error } = CreateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
+    if (!inCompanyScope(scope, data.fkVehicleCompanyId)) return Response.forbidden(OUT_OF_SCOPE);
 
     const conflict = await this.findUniqueConflict(data);
     if (conflict) return conflict;
@@ -66,18 +74,19 @@ class VehicleService {
     return Response.created("Veículo criado com sucesso!");
   }
 
-  async updateVehicle(vehicleId: string, data: Partial<VehicleInterface>) {
+  async updateVehicle(vehicleId: string, data: Partial<VehicleInterface>, scope: string[] | null = null) {
     data.updatedAt = new Date();
     if (!vehicleId) return Response.badRequest("ID não informado");
     if (typeof data.renavan === "string") data.renavan = normalizeRenavan(data.renavan.trim());
 
     const { error } = UpdateValidationSchema.VehicleValidation.validate(data);
     if (error) return Response.badRequest(error.message);
+    if (data.fkVehicleCompanyId && !inCompanyScope(scope, data.fkVehicleCompanyId)) return Response.forbidden(OUT_OF_SCOPE);
 
     const conflict = await this.findUniqueConflict(data, vehicleId);
     if (conflict) return conflict;
 
-    const [updated] = await this.model.update(data, { where: { vehicleId, activated: true } });
+    const [updated] = await this.model.update(data, { where: { vehicleId, activated: true, ...scopeWhere(scope) } });
     if (!updated) return Response.notFound("Veículo não encontrado!");
 
     const result = await this.model.findOne({
@@ -96,12 +105,12 @@ class VehicleService {
    * @param id Identificador do veículo.
    * @param updatedBy Usuário autenticado que executa a operação.
    */
-  async deleteVehicle(id: string, updatedBy: string) {
+  async deleteVehicle(id: string, updatedBy: string, scope: string[] | null = null) {
     if (!id) return Response.badRequest("ID não informado");
 
     const [updated] = await this.model.update(
       { activated: false, updatedBy, updatedAt: new Date() },
-      { where: { vehicleId: id, activated: true } }
+      { where: { vehicleId: id, activated: true, ...scopeWhere(scope) } }
     );
     if (!updated) return Response.notFound("Veículo não encontrado!");
 
@@ -115,10 +124,10 @@ class VehicleService {
    * @param id Identificador do veículo.
    * @param updatedBy Usuário autenticado que executa a operação.
    */
-  async reactivateVehicle(id: string, updatedBy: string) {
+  async reactivateVehicle(id: string, updatedBy: string, scope: string[] | null = null) {
     if (!id) return Response.badRequest("ID não informado");
 
-    const vehicle = await this.model.findOne({ where: { vehicleId: id, activated: false } });
+    const vehicle = await this.model.findOne({ where: { vehicleId: id, activated: false, ...scopeWhere(scope) } });
     if (!vehicle) return Response.notFound("Veículo não encontrado ou já ativo!");
 
     const typeActive = await VehicleTypeModel.count({ where: { typeVehicleId: vehicle.fkTypeVehicleId, activated: true } });
@@ -130,12 +139,12 @@ class VehicleService {
     return Response.ok("Veículo reativado com sucesso!");
   }
 
-  async getVehicle(id: string) {
+  async getVehicle(id: string, scope: string[] | null = null) {
     if (!id) return Response.badRequest("ID do veículo não informado.");
 
     try {
       const result = await this.model.findOne({
-        where: { vehicleId: id, activated: true },
+        where: { vehicleId: id, activated: true, ...scopeWhere(scope) },
         include: [
           { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
         ],
@@ -164,10 +173,11 @@ class VehicleService {
     hasWifi?: boolean;
     fkTypeVehicleId?: string;
     fkVehicleCompanyId?: string;
-  }) {
+  }, scope: string[] | null = null) {
 
     try {
-      const where: any = { activated: true };
+      if (query.fkVehicleCompanyId && !inCompanyScope(scope, query.fkVehicleCompanyId)) return Response.forbidden(OUT_OF_SCOPE);
+      const where: any = { activated: true, ...scopeWhere(scope) };
 
       if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
       if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
@@ -204,12 +214,12 @@ class VehicleService {
    * Responde 200 com os encontrados; IDs inexistentes ou inativos são omitidos (lista vazia não é 404).
    * @param ids Lista de UUIDs no corpo da requisição (1 a 500).
    */
-  async lookupVehicles(ids: unknown) {
+  async lookupVehicles(ids: unknown, scope: string[] | null = null) {
     const parsed = parseIdList(ids);
     if ("error" in parsed) return Response.badRequest(parsed.error);
 
     const result = await this.model.findAll({
-      where: { vehicleId: { [Op.in]: parsed.ids }, activated: true },
+      where: { vehicleId: { [Op.in]: parsed.ids }, activated: true, ...scopeWhere(scope) },
       include: [
         { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
       ],
@@ -224,13 +234,13 @@ class VehicleService {
    * @param ids Lista recebida em `req.body.ids` (UUIDs, máx. `MAX_DEACTIVATE_IDS`).
    * @param updatedBy Usuário autenticado que executa a operação.
    */
-  async bulkDeactivate(ids: unknown, updatedBy: string) {
+  async bulkDeactivate(ids: unknown, updatedBy: string, scope: string[] | null = null) {
     const parsed = parseIdList(ids, MAX_DEACTIVATE_IDS);
     if ("error" in parsed) return Response.badRequest(parsed.error);
 
     const transaction = await db.transaction();
     try {
-      const where = { vehicleId: { [Op.in]: parsed.ids }, activated: true };
+      const where = { vehicleId: { [Op.in]: parsed.ids }, activated: true, ...scopeWhere(scope) };
       const found = await this.model.findAll({ where, attributes: ["vehicleId"], lock: true, transaction });
       const foundIds = new Set(found.map(v => v.vehicleId));
       const missing = parsed.ids.filter(id => !foundIds.has(id));
@@ -253,8 +263,10 @@ class VehicleService {
    * relatório por item. Ver `VehicleBulkService`.
    * @param payload Empresa, usuário (do token) e lista de veículos.
    * @param options `dryRun`: só valida, sem gravar.
+   * @param scope Empresas visíveis (T18); empresa fora → 403.
    */
-  async bulkImport(payload: { companyId?: unknown; userId?: unknown; vehicles?: unknown }, options: ImportOptions = {}) {
+  async bulkImport(payload: { companyId?: unknown; userId?: unknown; vehicles?: unknown }, options: ImportOptions = {}, scope: string[] | null = null) {
+    if (typeof payload.companyId === "string" && !inCompanyScope(scope, payload.companyId)) return Response.forbidden(OUT_OF_SCOPE);
     return new VehicleBulkService().importVehicles(payload, options);
   }
 }
