@@ -1,0 +1,16 @@
+# CD na VM de dev. Só push na main ou disparo manual: PR de fork nunca chega ao runner da VM
+name: Deploy VM dev
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: deploy-vm
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: [self-hosted, helius-vm]
+    steps:
+      - run: "$HOME/Desktop/GitPull/deploy.sh operations"
