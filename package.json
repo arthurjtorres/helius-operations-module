@@ -1,6 +1,6 @@
 {
   "name": "helius-operations-module",
-  "version": "0.14.0-beta",
+  "version": "0.15.0-beta",
   "description": "Módulo de controle operacional de tráfego",
   "main": "src/server.ts",
   "repository": "https://github.com/NamelessMiojo/helius-operations-module.git",
