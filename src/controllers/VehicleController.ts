@@ -3,13 +3,14 @@ import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
 import VehicleService from "../services/VehicleService";
 import { parseImportOptions } from "../utils/VehicleUpsert";
+import { companyScope } from "../utils/AccessPolicy";
 
 class VehicleController {
   private service = new VehicleService();
 
   async createVehicle(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.createVehicle({ ...req.body, createdBy: res.locals.user.userId });
+      const result = await this.service.createVehicle({ ...req.body, createdBy: res.locals.user.userId }, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em createVehicle", error);
@@ -21,7 +22,7 @@ class VehicleController {
   async updateVehicle(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.updateVehicle(id, { ...req.body, updatedBy: res.locals.user.userId });
+      const result = await this.service.updateVehicle(id, { ...req.body, updatedBy: res.locals.user.userId }, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em updateVehicle", error);
@@ -33,7 +34,7 @@ class VehicleController {
   async deleteVehicle(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.deleteVehicle(id, res.locals.user.userId);
+      const result = await this.service.deleteVehicle(id, res.locals.user.userId, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em deleteVehicle", error);
@@ -45,7 +46,7 @@ class VehicleController {
   async reactivateVehicle(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.reactivateVehicle(id, res.locals.user.userId);
+      const result = await this.service.reactivateVehicle(id, res.locals.user.userId, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em reactivateVehicle", error);
@@ -57,7 +58,7 @@ class VehicleController {
   async getVehicle(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await this.service.getVehicle(id);
+      const result = await this.service.getVehicle(id, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em getVehicle", error);
@@ -69,7 +70,7 @@ class VehicleController {
   /** POST /lookup — consulta veículos por lista de IDs (corpo `{ ids }`). */
   async lookupVehicles(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.lookupVehicles(req.body?.ids);
+      const result = await this.service.lookupVehicles(req.body?.ids, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em lookupVehicles", error);
@@ -80,7 +81,7 @@ class VehicleController {
 
   async bulkDeactivate(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.bulkDeactivate(req.body?.ids, res.locals.user.userId);
+      const result = await this.service.bulkDeactivate(req.body?.ids, res.locals.user.userId, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em bulkDeactivate", error);
@@ -91,7 +92,7 @@ class VehicleController {
 
   async findVehicles(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.findVehicles(req.query);
+      const result = await this.service.findVehicles(req.query, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em findVehicles", error);
@@ -109,7 +110,7 @@ class VehicleController {
         const resp = Resp.badRequest(parsed.error);
         return res.status(resp.status).json(resp);
       }
-      const result = await this.service.bulkImport(payload, parsed.options);
+      const result = await this.service.bulkImport(payload, parsed.options, companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em bulkImportVehicles", error);
