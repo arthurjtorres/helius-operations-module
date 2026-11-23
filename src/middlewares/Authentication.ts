@@ -54,6 +54,8 @@ export interface JwtPayload {
   modules: string[];
   roles: UserModuleRole[];
   allowedMenus: MenuPermission[];
+  /** Empresas visíveis (T18); vazio para `SISTEMA`, ausente em token antigo e no de serviço. */
+  companyIds?: string[];
 }
 
 /** Métodos liberados ao token de serviço. */
