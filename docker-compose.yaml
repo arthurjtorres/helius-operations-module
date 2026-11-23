@@ -1,24 +1,20 @@
-version: "3.9"
 services:
   application:
     env_file:
       - ../.env  # Caminho relativo para a pasta raiz
     build: .
-    ports: 
-      - ${PORT_API_OPERACIONAL}:${PORT_API_OPERACIONAL}
-    environment:
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}  # Mesma configuração do banco
-      - DB_HOST=${DB_HOST}
-      - JWT_SECRET=${JWT_SECRET}
-    volumes:
-      - .:/modulo-operacional
-      - /modulo-operacional/node_modules
-
+    image: helius/operations:${VERSION:-latest}
+    ports:
+      - "${PORT_API_OPERACIONAL}:${PORT_API_OPERACIONAL}"
+    # Roda só a imagem: sem bind mount do código nem volume de node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${PORT_API_OPERACIONAL}/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     container_name: modulo-operacional
     restart: always
-
     networks:
       - helius_net
 

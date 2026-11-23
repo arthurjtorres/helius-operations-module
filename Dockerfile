@@ -1,32 +1,22 @@
-# Etapa 1 - Build da aplicação
-FROM node:lts-alpine3.22 AS builder
-
+# Node com major fixo: a tag lts muda de versão sozinha
+FROM node:24-alpine3.22 AS builder
 WORKDIR /modulo-operacional
-
-# Copiar apenas os arquivos necessários para instalar dependências
-COPY package*.json tsconfig*.json ./
-
-# Instalar todas dependências (inclusive dev)
-RUN yarn install
-
-# Copiar o restante do projeto
-COPY . .
-
-# Executar o build (gera a pasta build/)
+COPY package.json yarn.lock tsconfig.json ./
+RUN yarn install --frozen-lockfile
+COPY src ./src
 RUN yarn build
 
-# Etapa 2 - Imagem final para produção
-FROM node:lts-alpine3.22
-
+# Só dependências de produção na imagem final
+FROM node:24-alpine3.22 AS deps
 WORKDIR /modulo-operacional
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 
-# Copiar apenas arquivos essenciais da etapa de build
-COPY --from=builder /modulo-operacional/package*.json ./
-COPY --from=builder /modulo-operacional/build ./build
-COPY --from=builder /modulo-operacional/node_modules ./node_modules
-
-# Definir variáveis de ambiente para produção
+FROM node:24-alpine3.22
+WORKDIR /modulo-operacional
 ENV NODE_ENV=production
-
-# Comando de inicialização (executa o JS transpilado)
+COPY --from=deps /modulo-operacional/node_modules ./node_modules
+COPY --from=builder /modulo-operacional/build ./build
+COPY package.json ./
+USER node
 CMD ["node", "build/server.js"]

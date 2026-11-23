@@ -5,7 +5,6 @@
 
 # Ignorar logs e arquivos temporários comuns
 *.txt
-*.lock
 *.log
 *.env
 !.env.example
@@ -15,7 +14,6 @@ yarn-error.log*
 
 # Ignorar dependências do Docker
 docker-compose.override.yml
-.dockerignore
 
 # Ignorar arquivos do VS Code
 .vscode/
