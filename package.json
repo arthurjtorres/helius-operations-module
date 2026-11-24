@@ -37,7 +37,7 @@
     "@types/jest": "^30.0.0",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.19.2",
     "@types/sequelize": "^4.28.20",
     "@types/uuid": "^9.0.8",
     "jest": "^30.5.2",
