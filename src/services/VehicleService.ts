@@ -1,4 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
+import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import db, { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
@@ -173,11 +174,11 @@ class VehicleService {
     hasWifi?: boolean;
     fkTypeVehicleId?: string;
     fkVehicleCompanyId?: string;
-  }, scope: string[] | null = null) {
+  } & ListQuery, scope: string[] | null = null) {
 
     try {
       if (query.fkVehicleCompanyId && !inCompanyScope(scope, query.fkVehicleCompanyId)) return Response.forbidden(OUT_OF_SCOPE);
-      const where: any = { activated: true, ...scopeWhere(scope) };
+      const where: any = { ...activeWhere(query), ...scopeWhere(scope) };
 
       if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
       if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
@@ -193,7 +194,7 @@ class VehicleService {
       const vehicles = await this.model.findAll({
         where,
         include: [
-          { model: VehicleTypeModel, as: 'VehicleType', where: { activated: true }, required: false }
+          { model: VehicleTypeModel, as: 'VehicleType', where: activeWhere(query), required: false }
         ],
       });
 

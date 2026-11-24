@@ -65,6 +65,14 @@ describe('VehicleService com escopo (T18)', () => {
     expect(whereOf(mocks.findAll)).toMatchObject(scoped);
   });
 
+  it('includeInactive autorizado tira o filtro de ativos e mantém o escopo (T17)', async () => {
+    await service.findVehicles({}, scope);
+    expect(whereOf(mocks.findAll).activated).toBe(true);
+    await service.findVehicles({ includeInactive: true }, scope);
+    expect(whereOf(mocks.findAll, 1)).not.toHaveProperty('activated');
+    expect(whereOf(mocks.findAll, 1)).toMatchObject(scoped);
+  });
+
   it('by-id, PUT (empresa atual), delete e reactivate fora do escopo → 404', async () => {
     const id = randomUUID();
     expect((await service.getVehicle(id, scope)).status).toBe(404);
