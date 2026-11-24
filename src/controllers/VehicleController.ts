@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
 import VehicleService from "../services/VehicleService";
@@ -92,7 +93,7 @@ class VehicleController {
 
   async findVehicles(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.findVehicles(req.query, companyScope(res.locals.user));
+      const result = await this.service.findVehicles(listQuery(req, res), companyScope(res.locals.user));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em findVehicles", error);

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
 import BusTimetableService from "../services/BusTimetableService";
@@ -79,7 +80,7 @@ class BusTimetableController {
 
   async findBusTimetables(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.service.findBusTimetables(req.query);
+      const result = await this.service.findBusTimetables(listQuery(req, res));
       return res.status(result.status).json(result);
     } catch (error) {
       logError("Erro em findBusTimetables", error);

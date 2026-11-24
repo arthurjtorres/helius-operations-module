@@ -25,6 +25,22 @@ export interface PermissionOptions {
   serviceMayPost?: boolean;
 }
 
+/** Ações que liberam ver inativos nas listagens (T17, regra 2): qualquer uma além de leitura. */
+const INACTIVE_ACTIONS = [PermissionEnum.CREATE, PermissionEnum.UPDATE, PermissionEnum.DELETE];
+
+/**
+ * Avalia `?includeInactive=true` (T17): exige `CREATE`, `UPDATE` ou `DELETE` no menu.
+ * Token de serviço nunca lista inativos. Devolve `null` se pode, ou a resposta de negação.
+ * @param user Payload do JWT (já aprovado por `evaluatePermission`).
+ * @param requiredMenu Menu da rota.
+ */
+export const evaluateInactiveAccess = (user: JwtPayload, requiredMenu: string): { status: number; message: string } | null => {
+  if (isServiceToken(user)) return Response.forbidden("Token de serviço não lista registros inativos.");
+  return INACTIVE_ACTIONS.some(action => evaluatePermission(user, "GET", requiredMenu, action) === null)
+    ? null
+    : Response.forbidden(`Ver inativos exige permissão além de leitura em ${requiredMenu}.`);
+};
+
 /** Responde a negação (401/403) e interrompe a cadeia. */
 const deny = (res: ExpressResponse, resp: { status: number; message: string }) =>
   res.status(resp.status).json({ message: resp.message });
@@ -87,9 +103,17 @@ export const evaluatePermission = (
  */
 export const checkPermission = (requiredMenu: string, requiredAction?: PermissionEnum, options?: PermissionOptions) =>
   (req: Request, res: ExpressResponse, next: NextFunction) => {
+    const user = res.locals.user as JwtPayload | undefined;
     const denied = evaluatePermission(
-      res.locals.user as JwtPayload | undefined, req.method, requiredMenu, requiredAction,
+      user, req.method, requiredMenu, requiredAction,
       { ...options, serviceMayPost: res.locals.allowServiceToken === true }
     );
-    return denied ? deny(res, denied) : next();
+    if (denied) return deny(res, denied);
+
+    if (req.method === "GET" && req.query?.includeInactive === "true") {
+      const inactiveDenied = evaluateInactiveAccess(user as JwtPayload, requiredMenu);
+      if (inactiveDenied) return deny(res, inactiveDenied);
+      res.locals.includeInactive = true;
+    }
+    return next();
   };
