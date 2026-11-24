@@ -1,15 +1,21 @@
-# Atualizações semanais de dependências (npm) e das actions; majors ficam para PRs manuais
+# Atualizações semanais agrupadas: uma PR de npm (minor/patch) e uma de actions por repositório.
+# Majors ficam para PRs manuais. A PR do Dependabot não sobe a versão: o bump entra na própria branch antes do merge.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    groups:
+      npm:
+        update-types: ["minor", "patch"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
