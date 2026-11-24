@@ -1,4 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
+import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import { LocationModel, BusTimetableModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
@@ -109,8 +110,8 @@ class LocationService {
     locationType?: string;
     locationCeturbCode?: string;
     locationAcronym?: string;
-  }) {
-    const where: any = { activated: true };
+  } & ListQuery) {
+    const where: any = { ...activeWhere(query) };
 
     if (query.locationName) where.locationName = { [Op.iLike]: `%${query.locationName}%` };
     if (query.locationType) where.locationType = query.locationType;

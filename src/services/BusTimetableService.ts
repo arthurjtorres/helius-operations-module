@@ -1,4 +1,5 @@
 import { ModelStatic } from "sequelize";
+import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import { BusTimetableModel, LocationModel } from "../database/models";
 import BusTimetableInterface from "../database/interfaces/BusTimetableInterface";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
@@ -125,8 +126,8 @@ class BusTimetableService {
     return Response.ok("Tabelas de horário consultadas com sucesso.", result);
   }
 
-  async findBusTimetables(query: Partial<BusTimetableInterface>) {
-    const where: any = { activated: true };
+  async findBusTimetables(query: Partial<BusTimetableInterface> & ListQuery) {
+    const where: any = { ...activeWhere(query) };
     if (query.busTimetableId) {
       where.busTimetableId = query.busTimetableId;
     }

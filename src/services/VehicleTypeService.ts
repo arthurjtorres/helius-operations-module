@@ -1,4 +1,5 @@
 import { ModelStatic, Op } from "sequelize";
+import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
 import UpdateValidationSchema from "./validations/UpdateValidationSchema";
@@ -112,8 +113,8 @@ class VehicleTypeService {
     return Response.ok("Tipo de veículo encontrado!", result);
   }
 
-  async findVehicleTypes(query: { typeVehicleName?: string; airConditioner?: boolean }) {
-    const where: any = { activated: true };
+  async findVehicleTypes(query: { typeVehicleName?: string; airConditioner?: boolean } & ListQuery) {
+    const where: any = { ...activeWhere(query) };
 
     if (query.typeVehicleName) {
       where.typeVehicleName = { [Op.iLike]: `%${query.typeVehicleName}%` };
