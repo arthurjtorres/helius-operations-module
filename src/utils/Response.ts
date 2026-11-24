@@ -36,6 +36,10 @@ class Response {
     return { status: 403, message }
   }
 
+  static tooManyRequests(message: string = "Muitas requisições. Tente novamente mais tarde."): ErrorResponse {
+    return { status: 429, message };
+  }
+
   static notFound(message: string): ErrorResponse {
     return { status: 404, message };
   }
