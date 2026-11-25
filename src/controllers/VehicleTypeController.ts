@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
@@ -7,7 +7,7 @@ import VehicleTypeService from "../services/VehicleTypeService";
 class VehicleTypeController {
   private service = new VehicleTypeService();
 
-  async createVehicleType(req: Request, res: Response, next: NextFunction) {
+  async createVehicleType(req: Request, res: Response) {
     try {
       const result = await this.service.createVehicleType({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
@@ -18,7 +18,7 @@ class VehicleTypeController {
     }
   }
 
-  async updateVehicleType(req: Request, res: Response, next: NextFunction) {
+  async updateVehicleType(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.updateVehicleType(id, { ...req.body, updatedBy: res.locals.user.userId });
@@ -30,7 +30,7 @@ class VehicleTypeController {
     }
   }
 
-  async deleteVehicleType(req: Request, res: Response, next: NextFunction) {
+  async deleteVehicleType(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.deleteVehicleType(id, res.locals.user.userId);
@@ -42,7 +42,7 @@ class VehicleTypeController {
     }
   }
 
-  async reactivateVehicleType(req: Request, res: Response, next: NextFunction) {
+  async reactivateVehicleType(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.reactivateVehicleType(id, res.locals.user.userId);
@@ -54,7 +54,7 @@ class VehicleTypeController {
     }
   }
 
-  async getVehicleType(req: Request, res: Response, next: NextFunction) {
+  async getVehicleType(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.getVehicleType(id);
@@ -66,7 +66,7 @@ class VehicleTypeController {
     }
   }
 
-  async findVehicleTypes(req: Request, res: Response, next: NextFunction) {
+  async findVehicleTypes(req: Request, res: Response) {
     try {
       const result = await this.service.findVehicleTypes(listQuery(req, res));
       return res.status(result.status).json(result);

@@ -4,7 +4,7 @@ import { buildCorsOptions, resolveAllowedOrigins } from '../utils/corsOptions';
 const check = (allowed: string[], origin: string | undefined) => {
   const opts = buildCorsOptions(allowed);
   let result: [unknown, unknown] = [undefined, undefined];
-  (opts.origin as Function)(origin, (err: unknown, ok: unknown) => { result = [err, ok]; });
+  (opts.origin as (o: string | undefined, cb: (err: unknown, ok: unknown) => void) => void)(origin, (err, ok) => { result = [err, ok]; });
   return result;
 };
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
@@ -9,7 +9,7 @@ import { companyScope } from "../utils/AccessPolicy";
 class VehicleController {
   private service = new VehicleService();
 
-  async createVehicle(req: Request, res: Response, next: NextFunction) {
+  async createVehicle(req: Request, res: Response) {
     try {
       const result = await this.service.createVehicle({ ...req.body, createdBy: res.locals.user.userId }, companyScope(res.locals.user));
       return res.status(result.status).json(result);
@@ -20,7 +20,7 @@ class VehicleController {
     }
   }
 
-  async updateVehicle(req: Request, res: Response, next: NextFunction) {
+  async updateVehicle(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.updateVehicle(id, { ...req.body, updatedBy: res.locals.user.userId }, companyScope(res.locals.user));
@@ -32,7 +32,7 @@ class VehicleController {
     }
   }
 
-  async deleteVehicle(req: Request, res: Response, next: NextFunction) {
+  async deleteVehicle(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.deleteVehicle(id, res.locals.user.userId, companyScope(res.locals.user));
@@ -44,7 +44,7 @@ class VehicleController {
     }
   }
 
-  async reactivateVehicle(req: Request, res: Response, next: NextFunction) {
+  async reactivateVehicle(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.reactivateVehicle(id, res.locals.user.userId, companyScope(res.locals.user));
@@ -56,7 +56,7 @@ class VehicleController {
     }
   }
 
-  async getVehicle(req: Request, res: Response, next: NextFunction) {
+  async getVehicle(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.getVehicle(id, companyScope(res.locals.user));
@@ -69,7 +69,7 @@ class VehicleController {
   }
 
   /** POST /lookup — consulta veículos por lista de IDs (corpo `{ ids }`). */
-  async lookupVehicles(req: Request, res: Response, next: NextFunction) {
+  async lookupVehicles(req: Request, res: Response) {
     try {
       const result = await this.service.lookupVehicles(req.body?.ids, companyScope(res.locals.user));
       return res.status(result.status).json(result);
@@ -80,7 +80,7 @@ class VehicleController {
     }
   }
 
-  async bulkDeactivate(req: Request, res: Response, next: NextFunction) {
+  async bulkDeactivate(req: Request, res: Response) {
     try {
       const result = await this.service.bulkDeactivate(req.body?.ids, res.locals.user.userId, companyScope(res.locals.user));
       return res.status(result.status).json(result);
@@ -91,7 +91,7 @@ class VehicleController {
     }
   }
 
-  async findVehicles(req: Request, res: Response, next: NextFunction) {
+  async findVehicles(req: Request, res: Response) {
     try {
       const result = await this.service.findVehicles(listQuery(req, res), companyScope(res.locals.user));
       return res.status(result.status).json(result);
@@ -103,7 +103,7 @@ class VehicleController {
   }
 
   /** POST /bulk — importa veículos em lote (`{ companyId, vehicles }`; `?dryRun=true` só valida). */
-  async bulkImportVehicles(req: Request, res: Response, next: NextFunction) {
+  async bulkImportVehicles(req: Request, res: Response) {
     try {
       const payload = { ...req.body, userId: res.locals.user.userId };
       const parsed = parseImportOptions(req.query, req.body);

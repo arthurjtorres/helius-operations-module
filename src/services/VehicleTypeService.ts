@@ -1,4 +1,4 @@
-import { ModelStatic, Op } from "sequelize";
+import { ModelStatic, Op, WhereAttributeHash } from "sequelize";
 import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
@@ -114,7 +114,7 @@ class VehicleTypeService {
   }
 
   async findVehicleTypes(query: { typeVehicleName?: string; airConditioner?: boolean } & ListQuery) {
-    const where: any = { ...activeWhere(query) };
+    const where: WhereAttributeHash = { ...activeWhere(query) };
 
     if (query.typeVehicleName) {
       where.typeVehicleName = { [Op.iLike]: `%${query.typeVehicleName}%` };
