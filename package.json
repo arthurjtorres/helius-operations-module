@@ -1,6 +1,6 @@
 {
   "name": "helius-operations-module",
-  "version": "0.16.3-beta",
+  "version": "0.16.4-beta",
   "description": "Módulo de controle operacional de tráfego",
   "main": "src/server.ts",
   "repository": "https://github.com/NamelessMiojo/helius-operations-module.git",
@@ -10,6 +10,7 @@
   "scripts": {
     "build": "npx tsc",
     "test": "jest",
+    "lint": "eslint src",
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "migrate": "npx sequelize db:migrate",
     "start": "node server.js"
@@ -31,6 +32,7 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.19.0",
@@ -40,11 +42,13 @@
     "@types/node": "^24.19.2",
     "@types/sequelize": "^4.28.20",
     "@types/uuid": "^9.0.8",
+    "eslint": "^10.15.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.7",
     "sequelize-cli": "^6.6.2",
     "ts-jest": "^29.4.15",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.74.0"
   }
 }

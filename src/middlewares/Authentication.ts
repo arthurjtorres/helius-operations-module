@@ -83,7 +83,7 @@ const verifyToken = (req: Request, res: ExpressResponse, next: NextFunction) => 
 
   try {
     res.locals.user = jwt.verify(token, getSecret()) as JwtPayload;
-  } catch (error) {
+  } catch {
     const resp = Response.unauthorized('Token inválido');
     return res.status(resp.status).json({ message: resp.message });
   }

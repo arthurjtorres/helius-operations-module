@@ -1,4 +1,4 @@
-import { ModelStatic, Op } from "sequelize";
+import { ModelStatic, Op, WhereAttributeHash } from "sequelize";
 import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import db, { VehicleTypeModel, VehicleModel } from "../database/models";
 import CreateValidationSchema from "./validations/CreateValidationSchema";
@@ -43,7 +43,7 @@ class VehicleService {
       const value = data[field];
       if (!value) continue;
 
-      const where: any = { [field]: value };
+      const where: WhereAttributeHash = { [field]: value };
       if (excludeId) where.vehicleId = { [Op.ne]: excludeId };
 
       const existing = await this.model.findOne({ where });
@@ -178,7 +178,7 @@ class VehicleService {
 
     try {
       if (query.fkVehicleCompanyId && !inCompanyScope(scope, query.fkVehicleCompanyId)) return Response.forbidden(OUT_OF_SCOPE);
-      const where: any = { ...activeWhere(query), ...scopeWhere(scope) };
+      const where: WhereAttributeHash = { ...activeWhere(query), ...scopeWhere(scope) };
 
       if (query.vehicleNumber) where.vehicleNumber = { [Op.iLike]: `%${query.vehicleNumber}%` };
       if (query.licensePlate) where.licensePlate = { [Op.iLike]: `%${query.licensePlate}%` };
