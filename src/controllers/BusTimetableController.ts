@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
@@ -7,7 +7,7 @@ import BusTimetableService from "../services/BusTimetableService";
 class BusTimetableController {
   private service = new BusTimetableService();
 
-  async createBusTimetable(req: Request, res: Response, next: NextFunction) {
+  async createBusTimetable(req: Request, res: Response) {
     try {
       const result = await this.service.createBusTimetable({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
@@ -18,7 +18,7 @@ class BusTimetableController {
     }
   }
 
-  async updateBusTimetable(req: Request, res: Response, next: NextFunction) {
+  async updateBusTimetable(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.updateBusTimetable(id, { ...req.body, updatedBy: res.locals.user.userId });
@@ -30,7 +30,7 @@ class BusTimetableController {
     }
   }
 
-  async deleteBusTimetable(req: Request, res: Response, next: NextFunction) {
+  async deleteBusTimetable(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.deleteBusTimetable(id, res.locals.user.userId);
@@ -42,7 +42,7 @@ class BusTimetableController {
     }
   }
 
-  async reactivateBusTimetable(req: Request, res: Response, next: NextFunction) {
+  async reactivateBusTimetable(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.reactivateBusTimetable(id, res.locals.user.userId);
@@ -54,7 +54,7 @@ class BusTimetableController {
     }
   }
 
-  async getBusTimetable(req: Request, res: Response, next: NextFunction) {
+  async getBusTimetable(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.getBusTimetable(id);
@@ -67,7 +67,7 @@ class BusTimetableController {
   }
 
   /** POST /lookup — consulta tabelas de horário por lista de IDs (corpo `{ ids }`). */
-  async lookupBusTimetables(req: Request, res: Response, next: NextFunction) {
+  async lookupBusTimetables(req: Request, res: Response) {
     try {
       const result = await this.service.getBusTimetablesByIds(req.body?.ids);
       return res.status(result.status).json(result);
@@ -78,7 +78,7 @@ class BusTimetableController {
     }
   }
 
-  async findBusTimetables(req: Request, res: Response, next: NextFunction) {
+  async findBusTimetables(req: Request, res: Response) {
     try {
       const result = await this.service.findBusTimetables(listQuery(req, res));
       return res.status(result.status).json(result);
