@@ -16,6 +16,7 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - run: yarn lint
       - run: yarn test --ci
       # Bloqueia só high/critical em dependências de runtime. O yarn 1 ignora --level no código de saída
       # (máscara: 2 low, 4 moderate, 8 high, 16 critical), então o passo confere os bits 8 e 16.

@@ -17,6 +17,17 @@ export type ErrorSummary = {
   status?: number;
 };
 
+/** Campos lidos de erros do Sequelize e do Axios; tudo opcional e sem tipo garantido. */
+type ErrorLike = {
+  name?: unknown;
+  message?: unknown;
+  parent?: { code?: unknown };
+  original?: { code?: unknown };
+  isAxiosError?: unknown;
+  config?: { method?: unknown; url?: unknown };
+  response?: { status?: unknown };
+};
+
 const asString = (value: unknown): string | undefined =>
   typeof value === "string" ? value : undefined;
 
@@ -25,7 +36,7 @@ export const summarizeError = (error: unknown): ErrorSummary => {
     return { name: "NonError", message: typeof error === "string" ? error : typeof error };
   }
 
-  const e = error as Record<string, any>;
+  const e = error as ErrorLike;
   const summary: ErrorSummary = {
     name: asString(e.name) ?? "Error",
     message: asString(e.message) ?? "",

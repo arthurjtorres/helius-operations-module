@@ -1,4 +1,4 @@
-import { ModelStatic } from "sequelize";
+import { ModelStatic, WhereAttributeHash } from "sequelize";
 import { ListQuery, activeWhere } from "../utils/ActiveFilter";
 import { BusTimetableModel, LocationModel } from "../database/models";
 import BusTimetableInterface from "../database/interfaces/BusTimetableInterface";
@@ -127,7 +127,7 @@ class BusTimetableService {
   }
 
   async findBusTimetables(query: Partial<BusTimetableInterface> & ListQuery) {
-    const where: any = { ...activeWhere(query) };
+    const where: WhereAttributeHash = { ...activeWhere(query) };
     if (query.busTimetableId) {
       where.busTimetableId = query.busTimetableId;
     }

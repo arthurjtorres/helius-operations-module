@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { listQuery } from "../utils/ActiveFilter";
 import { logError } from "../utils/logError";
 import Resp from "../utils/Response";
@@ -7,7 +7,7 @@ import LocationService from "../services/LocationService";
 class LocationController {
   private service = new LocationService();
 
-  async createLocation(req: Request, res: Response, next: NextFunction) {
+  async createLocation(req: Request, res: Response) {
     try {
       const result = await this.service.createLocation({ ...req.body, createdBy: res.locals.user.userId });
       return res.status(result.status).json(result);
@@ -18,7 +18,7 @@ class LocationController {
     }
   }
 
-  async updateLocation(req: Request, res: Response, next: NextFunction) {
+  async updateLocation(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.updateLocation(id, { ...req.body, updatedBy: res.locals.user.userId });
@@ -30,7 +30,7 @@ class LocationController {
     }
   }
 
-  async deleteLocation(req: Request, res: Response, next: NextFunction) {
+  async deleteLocation(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.deleteLocation(id, res.locals.user.userId);
@@ -42,7 +42,7 @@ class LocationController {
     }
   }
 
-  async reactivateLocation(req: Request, res: Response, next: NextFunction) {
+  async reactivateLocation(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.reactivateLocation(id, res.locals.user.userId);
@@ -54,7 +54,7 @@ class LocationController {
     }
   }
 
-  async getLocation(req: Request, res: Response, next: NextFunction) {
+  async getLocation(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.service.getLocation(id);
@@ -67,7 +67,7 @@ class LocationController {
   }
 
   /** POST /lookup — consulta localizações por lista de IDs (corpo `{ ids }`). */
-  async lookupLocations(req: Request, res: Response, next: NextFunction) {
+  async lookupLocations(req: Request, res: Response) {
     try {
       const result = await this.service.getLocationsByIds(req.body?.ids);
       return res.status(result.status).json(result);
@@ -78,7 +78,7 @@ class LocationController {
     }
   }
 
-  async findLocations(req: Request, res: Response, next: NextFunction) {
+  async findLocations(req: Request, res: Response) {
     try {
       const result = await this.service.findLocations(listQuery(req, res));
       return res.status(result.status).json(result);
