@@ -2,6 +2,7 @@
 **/node_modules/
 **/build/
 **/dist/
+coverage/
 
 # Ignorar logs e arquivos temporários comuns
 *.txt
