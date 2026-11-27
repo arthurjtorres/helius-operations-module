@@ -1,5 +1,5 @@
 # Atualizações semanais agrupadas: uma PR de npm (minor/patch) e uma de actions por repositório.
-# Majors ficam para PRs manuais. A PR do Dependabot não sobe a versão: o bump entra na própria branch antes do merge.
+# Majors ficam para PRs manuais. A PR do Dependabot é mergeada sem bump: o da próxima PR do módulo registra essas atualizações (ADR-026).
 version: 2
 updates:
   - package-ecosystem: npm
