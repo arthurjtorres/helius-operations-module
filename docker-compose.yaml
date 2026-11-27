@@ -2,6 +2,13 @@ services:
   application:
     env_file:
       - ../.env  # Caminho relativo para a pasta raiz
+    # Papel próprio no banco (T26); sem a variável nova vale DB_USER/DB_PASS. Senhas dos outros módulos ficam vazias.
+    environment:
+      - DB_USER=${DB_USER_OPERATIONS:-${DB_USER}}
+      - DB_PASS=${DB_PASS_OPERATIONS:-${DB_PASS}}
+      - DB_PASS_CONTROL=
+      - DB_PASS_REGISTRY=
+      - DB_PASS_JURISTIC=
     build: .
     image: helius/operations:${VERSION:-latest}
     ports:
